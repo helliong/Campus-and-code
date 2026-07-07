@@ -40,7 +40,7 @@
 
     .cart-summary {
       flex: 1 1 300px;
-      background-color: #fff;
+      background-color: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 1.5rem;
@@ -58,7 +58,7 @@
     display: flex;
     align-items: center;
     padding: 1rem;
-    background-color: #fff;
+    background-color: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     position: relative;
@@ -128,7 +128,7 @@
       line-height: 1;
 
       &:hover {
-        color: darken(#dc3545, 10%);
+        color: #c82333;
       }
     }
   }
@@ -167,7 +167,7 @@
       transition: background-color 0.2s;
 
       &:hover {
-        background-color: darken(#28a745, 10%);
+        background-color: #218838;
       }
     }
   }

@@ -1,5 +1,5 @@
 .site-header {
-  background-color: #fff;
+  background-color: var(--card-bg);
   border-bottom: 1px solid var(--border-color);
   padding: 1rem 0;
 
@@ -40,7 +40,7 @@
       border-radius: 4px;
       
       &:hover {
-        background-color: darken(#007bff, 10%);
+        background-color: #0069d9;
         color: #fff;
       }
     }

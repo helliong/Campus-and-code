@@ -4,6 +4,16 @@
   --background-color: #f8f9fa;
   --text-color: #212529;
   --border-color: #dee2e6;
+  --card-bg: #fff;
+}
+
+body.dark-theme {
+  --primary-color: #3f9eff;
+  --secondary-color: #a0aab3;
+  --background-color: #121212;
+  --text-color: #e0e0e0;
+  --border-color: #333333;
+  --card-bg: #1e1e1e;
 }
 
 * {
