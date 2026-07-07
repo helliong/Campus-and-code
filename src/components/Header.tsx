@@ -12,7 +12,7 @@ export default function Header() {
     <header className="site-header">
       <div className="header-container">
         <div className="logo">
-          <Link href="/">URFU Merch</Link>
+          <Link href="/"><img src="/campus-code-logo.svg" alt="Campus & Code" height="60" /></Link>
         </div>
         <nav className="navigation">
           <Link href="/cart" className="nav-link cart-link">

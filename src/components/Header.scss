@@ -3,6 +3,7 @@
   border-bottom: 1px solid var(--border-color);
   padding: 1rem 0;
 
+
   .header-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -12,11 +13,19 @@
     align-items: center;
   }
 
-  .logo a {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--primary-color);
-  }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+
+      a {
+        text-decoration: none;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+      }
+      
+    }
+  
 
   .navigation {
     display: flex;

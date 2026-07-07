@@ -14,6 +14,10 @@ body.dark-theme {
   --text-color: #e0e0e0;
   --border-color: #333333;
   --card-bg: #1e1e1e;
+
+  .logo img {
+    filter: invert(1) brightness(1.5);
+  }
 }
 
 * {
