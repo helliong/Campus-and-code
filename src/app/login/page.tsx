@@ -13,7 +13,7 @@ export default function LoginPage() {
         <form className="login-form">
           <div className="form-group">
             <label htmlFor="email">Университетский Email</label>
-            <input type="email" id="email" placeholder="student@university.edu" required />
+            <input type="email" id="email" placeholder="example@urfu.com" required />
           </div>
           
           <div className="form-group">
@@ -25,12 +25,6 @@ export default function LoginPage() {
             Войти
           </button>
         </form>
-
-        <div className="divider">или</div>
-
-        <button className="oauth-btn github-btn" onClick={() => alert('Пока это только дизайн!')}>
-          Войти через GitHub
-        </button>
 
         <p className="register-link">
           Нет аккаунта? <Link href="/register">Зарегистрируйтесь</Link>
