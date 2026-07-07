@@ -20,10 +20,21 @@
     flex-wrap: wrap;
     gap: 2rem;
 
-    /* Make children take equal width, similar to grid */
+    /* Fixed flex grid without using CSS Grid */
     & > * {
-      flex: 1 1 280px;
-      max-width: 100%;
+      flex: 0 0 calc(33.333% - 1.34rem); /* 3 items per row */
+    }
+
+    @media (max-width: 1024px) {
+      & > * {
+        flex: 0 0 calc(50% - 1rem); /* 2 items per row */
+      }
+    }
+
+    @media (max-width: 650px) {
+      & > * {
+        flex: 0 0 100%; /* 1 item per row */
+      }
     }
   }
 }
