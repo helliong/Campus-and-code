@@ -2,6 +2,7 @@
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 
   h1 {
     font-size: 2.5rem;
@@ -19,21 +20,27 @@
     display: flex;
     flex-wrap: wrap;
     gap: 2rem;
+    justify-content: flex-start;
+    width: 100%;
 
     /* Fixed flex grid without using CSS Grid */
     & > * {
       flex: 0 0 calc(33.333% - 1.34rem); /* 3 items per row */
+      max-width: calc(33.333% - 1.34rem);
+      width: 100%;
     }
 
     @media (max-width: 1024px) {
       & > * {
         flex: 0 0 calc(50% - 1rem); /* 2 items per row */
+        max-width: calc(50% - 1rem);
       }
     }
 
     @media (max-width: 650px) {
       & > * {
         flex: 0 0 100%; /* 1 item per row */
+        max-width: 100%;
       }
     }
   }

@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import type { FormEvent } from 'react';
 import { useCart } from '../context/CartContext';
+import { useFavorites } from '../context/FavoritesContext';
 import './Header.scss';
 
 export default function Header() {
   const { items } = useCart();
+  const { favorites } = useFavorites();
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -40,10 +42,13 @@ export default function Header() {
             </svg>
             <span>Профиль</span>
           </Link>
-          <Link href="/" className="user-nav-link">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 21.35a1 1 0 0 1-.64-.23C5.2 15.98 2 12.74 2 8.75A5.73 5.73 0 0 1 7.75 3 6.27 6.27 0 0 1 12 4.75 6.27 6.27 0 0 1 16.25 3 5.73 5.73 0 0 1 22 8.75c0 3.99-3.2 7.23-9.36 12.37a1 1 0 0 1-.64.23ZM7.75 5A3.72 3.72 0 0 0 4 8.75c0 2.87 2.45 5.57 8 10.29 5.55-4.72 8-7.42 8-10.29A3.72 3.72 0 0 0 16.25 5a4.25 4.25 0 0 0-3.45 1.8 1 1 0 0 1-1.6 0A4.25 4.25 0 0 0 7.75 5Z" />
-            </svg>
+          <Link href="/favorites" className="user-nav-link cart-link">
+            <span className="cart-icon-wrapper">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 21.35a1 1 0 0 1-.64-.23C5.2 15.98 2 12.74 2 8.75A5.73 5.73 0 0 1 7.75 3 6.27 6.27 0 0 1 12 4.75 6.27 6.27 0 0 1 16.25 3 5.73 5.73 0 0 1 22 8.75c0 3.99-3.2 7.23-9.36 12.37a1 1 0 0 1-.64.23ZM7.75 5A3.72 3.72 0 0 0 4 8.75c0 2.87 2.45 5.57 8 10.29 5.55-4.72 8-7.42 8-10.29A3.72 3.72 0 0 0 16.25 5a4.25 4.25 0 0 0-3.45 1.8 1 1 0 0 1-1.6 0A4.25 4.25 0 0 0 7.75 5Z" />
+              </svg>
+              {favorites.length > 0 && <span className="cart-badge">{favorites.length}</span>}
+            </span>
             <span>Избранное</span>
           </Link>
           <Link href="/cart" className="user-nav-link cart-link">
