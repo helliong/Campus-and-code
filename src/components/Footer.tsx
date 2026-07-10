@@ -17,7 +17,7 @@ export default function Footer() {
           <div className="footer-col brand-col">
             <div className="footer-logo">
               <Link href="/">
-                <img src="/campus-code-logo.svg" alt="Campus & Code" height="45" />
+                <img src="/campus-code-logo.svg" alt="Campus & Code" height="60" />
               </Link>
             </div>
             <p className="brand-desc">

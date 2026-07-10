@@ -38,53 +38,89 @@
     }
   }
 
-  .add-to-cart-btn {
-    margin-top: 1rem;
-    padding: 1rem;
-    background-color: var(--primary-color);
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: bold;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background-color: #0069d9;
-    }
-  }
-
-  .quantity-controls {
+  .action-buttons {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    background-color: var(--background-color);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    overflow: hidden;
+    gap: 1rem;
+    margin-top: 1rem;
+    align-items: stretch;
+    height: 54px;
 
-    .qty-btn {
+    .add-to-cart-btn {
       flex: 1;
-      padding: 0.8rem;
-      background: none;
-      border: none;
-      color: var(--text-color);
-      font-size: 1.5rem;
+      background-color: var(--primary-color);
+      color: #fff;
+      font-size: 1.1rem;
       font-weight: bold;
-      cursor: pointer;
+      border-radius: 4px;
       transition: background-color 0.2s;
 
       &:hover {
-        background-color: var(--border-color);
+        background-color: #0069d9;
       }
     }
 
-    .qty-value {
+    .quantity-controls {
       flex: 1;
-      text-align: center;
-      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--background-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+
+      .qty-btn {
+        flex: 1;
+        background: none;
+        border: none;
+        color: var(--text-color);
+        font-size: 1.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        height: 100%;
+
+        &:hover {
+          background-color: var(--border-color);
+        }
+      }
+
+      .qty-value {
+        flex: 1;
+        text-align: center;
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 1.1rem;
+      }
+    }
+
+    .favorite-btn {
+      flex: 0 0 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
       color: var(--text-color);
-      font-size: 1.1rem;
+      transition: all 0.2s;
+
+      svg {
+        width: 24px;
+        height: 24px;
+        fill: currentColor;
+      }
+
+      &:hover {
+        border-color: #ff4757;
+        color: #ff4757;
+      }
+
+      &.active {
+        background-color: #ff4757;
+        border-color: #ff4757;
+        color: #fff;
+      }
     }
   }
 }
