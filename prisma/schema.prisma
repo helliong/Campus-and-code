@@ -14,4 +14,29 @@ model User {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  favorites Favorite[]
+  cartItems CartItem[]
 }
+
+model Favorite {
+  id        String @id @default(cuid())
+  userId    String
+  productId String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, productId])
+}
+
+model CartItem {
+  id            String  @id @default(cuid())
+  userId        String
+  productId     String
+  quantity      Int
+  selectedSize  String?
+  selectedColor String?
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId, selectedSize, selectedColor])
+}
+
