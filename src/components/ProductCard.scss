@@ -1,19 +1,19 @@
 .product-card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  background-color: #11151a;
+  background-color: var(--bg-card);
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   display: flex;
   flex-direction: column;
   width: 100%;
   min-width: 200px;
-  color: #fff;
+  color: var(--text-main);
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.2);
-    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    border-color: var(--text-secondary);
   }
 
   .image-wrapper {
@@ -28,9 +28,10 @@
       position: absolute;
       top: 12px;
       right: 12px;
-      background: rgba(17, 21, 26, 0.6);
+      background: var(--bg-main);
+      opacity: 0.8;
       backdrop-filter: blur(4px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border);
       border-radius: 50%;
       width: 32px;
       height: 32px;
@@ -38,12 +39,13 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      color: rgba(255, 255, 255, 0.5);
+      color: var(--text-secondary);
       transition: all 0.2s;
       z-index: 2;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.1);
+        opacity: 1;
+        background: var(--bg-card);
         color: #ff4757;
       }
 
@@ -66,11 +68,6 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s;
-
-    &:hover {
-      transform: scale(1.05);
-    }
   }
 
   .product-info {
@@ -85,7 +82,7 @@
       margin-bottom: 0.5rem;
       
       a {
-        color: #fff;
+        color: var(--text-main);
         text-decoration: none;
         transition: opacity 0.2s;
         &:hover {
@@ -97,7 +94,7 @@
     .price {
       font-size: 1.1rem;
       font-weight: 600;
-      color: #fff;
+      color: var(--text-main);
       margin-bottom: 1.25rem;
       margin-top: auto;
     }
@@ -109,8 +106,8 @@
       width: 100%;
       padding: 0.75rem 1rem;
       background-color: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
       border-radius: 6px;
       font-size: 0.9rem;
       font-weight: 500;
@@ -123,8 +120,8 @@
       }
 
       &:hover {
-        border-color: rgba(255, 255, 255, 0.5);
-        color: #fff;
+        border-color: var(--text-main);
+        color: var(--text-main);
         svg {
           opacity: 1;
         }
@@ -137,7 +134,7 @@
       justify-content: space-between;
       width: 100%;
       background-color: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid var(--border);
       border-radius: 6px;
       overflow: hidden;
 
@@ -146,13 +143,13 @@
         padding: 0.65rem;
         background: none;
         border: none;
-        color: #fff;
+        color: var(--text-main);
         font-size: 1.1rem;
         cursor: pointer;
         transition: background-color 0.2s;
 
         &:hover {
-          background-color: rgba(255, 255, 255, 0.1);
+          background-color: var(--bg-main);
         }
       }
 
@@ -161,9 +158,8 @@
         text-align: center;
         font-size: 0.9rem;
         font-weight: 500;
-        color: #fff;
+        color: var(--text-main);
       }
     }
   }
 }
-

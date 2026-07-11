@@ -250,14 +250,14 @@
 
       h2 {
         font-size: 1.8rem;
-        color: #fff;
+        color: var(--text-main);
         font-weight: 500;
         margin: 0;
         font-family: Georgia, serif;
       }
       
       .view-all {
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-secondary);
         text-decoration: none;
         font-size: 0.9rem;
         display: flex;
@@ -265,7 +265,7 @@
         transition: color 0.2s;
         
         &:hover {
-          color: #fff;
+          color: var(--text-main);
         }
       }
     }
