@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import type { FormEvent } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import './Header.scss';
 
 export default function Header() {
+  const { data: session } = useSession();
   const { items } = useCart();
   const { favorites } = useFavorites();
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
@@ -36,12 +38,19 @@ export default function Header() {
           </button>
         </form>
         <nav className="user-navigation" aria-label="Пользовательское меню">
-          <Link href="/login" className="user-nav-link">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0-7a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 9c-4.14 0-7.5 2.58-7.5 5.75 0 .69.56 1.25 1.25 1.25h12.5c.69 0 1.25-.56 1.25-1.25C19.5 16.58 16.14 14 12 14Zm-5.38 5c.52-1.69 2.74-3 5.38-3s4.86 1.31 5.38 3H6.62Z" />
-            </svg>
-            <span>Профиль</span>
-          </Link>
+          {session ? (
+            <div className="user-nav-link" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span>{session.user?.name || session.user?.email?.split('@')[0]}</span>
+              <button onClick={() => signOut()} style={{ background: 'none', border: '1px solid currentColor', padding: '2px 8px', borderRadius: '4px', cursor: 'pointer', color: 'inherit', fontSize: '0.8rem' }}>Выйти</button>
+            </div>
+          ) : (
+            <Link href="/login" className="user-nav-link">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0-7a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 9c-4.14 0-7.5 2.58-7.5 5.75 0 .69.56 1.25 1.25 1.25h12.5c.69 0 1.25-.56 1.25-1.25C19.5 16.58 16.14 14 12 14Zm-5.38 5c.52-1.69 2.74-3 5.38-3s4.86 1.31 5.38 3H6.62Z" />
+              </svg>
+              <span>Войти</span>
+            </Link>
+          )}
           <Link href="/favorites" className="user-nav-link cart-link">
             <span className="cart-icon-wrapper">
               <svg viewBox="0 0 24 24" aria-hidden="true">
