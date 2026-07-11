@@ -51,11 +51,24 @@
         font-family: inherit;
         background-color: var(--bg-main);
         color: var(--text-main);
+        transition: border-color 0.2s ease, background-color 0.2s ease;
 
         &:focus {
           outline: none;
           border-color: var(--primary);
         }
+
+        &.input-error {
+          border-color: #ef4444;
+          background-color: rgba(239, 68, 68, 0.05);
+        }
+      }
+
+      .error-text {
+        color: #ef4444;
+        font-size: 0.85rem;
+        margin-top: -0.25rem;
+        animation: fadeIn 0.3s ease;
       }
     }
 
