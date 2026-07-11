@@ -4,6 +4,7 @@ import ProductCard from "../components/ProductCard";
 import Image from "next/image";
 import Link from "next/link";
 import { FiFeather, FiGift, FiTruck } from "react-icons/fi";
+import { LuLeaf, LuPenTool, LuTruck, LuStar } from "react-icons/lu";
 
 const categories = [
   {
@@ -183,7 +184,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="promo-banners-section" style={{ marginTop: "2rem" }}>
+      <section className="promo-banners-section">
         <Link href="/category/universities" className="promo-banner">
           <Image
             src="/banner-one.png"
@@ -224,6 +225,47 @@ export default function Home() {
             <span className="promo-banner-button">Смотреть коллекции</span>
           </span>
         </Link>
+      </section>
+
+      <section className="features-section">
+        <div className="features-container">
+          <div className="feature-item">
+            <div className="feature-icon">
+              <LuLeaf />
+            </div>
+            <div className="feature-text">
+              <h4>Качественные материалы</h4>
+              <p>Ткань, принты и фурнитура премиального качества.</p>
+            </div>
+          </div>
+          <div className="feature-item">
+            <div className="feature-icon">
+              <LuPenTool />
+            </div>
+            <div className="feature-text">
+              <h4>Минималистичный дизайн</h4>
+              <p>Чистые формы и внимание к деталям.</p>
+            </div>
+          </div>
+          <div className="feature-item">
+            <div className="feature-icon">
+              <LuTruck />
+            </div>
+            <div className="feature-text">
+              <h4>Доставка по России</h4>
+              <p>Быстро и надежно доставим ваш заказ.</p>
+            </div>
+          </div>
+          <div className="feature-item">
+            <div className="feature-icon">
+              <LuStar />
+            </div>
+            <div className="feature-text">
+              <h4>Лимитированные коллекции</h4>
+              <p>Уникальные дропы в ограниченном количестве.</p>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
   );
