@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { FormEvent } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoritesContext";
 import "./Header.scss";
@@ -11,6 +12,7 @@ export default function Header() {
   const { data: session } = useSession();
   const { items } = useCart();
   const { favorites } = useFavorites();
+  const pathname = usePathname();
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -25,7 +27,10 @@ export default function Header() {
           </Link>
         </div>
         <nav className="navigation">
-          <Link href="/catalog" className="nav-link">
+          <Link 
+            href="/catalog" 
+            className={`nav-link ${pathname?.startsWith('/catalog') || pathname?.startsWith('/product') ? 'active' : ''}`}
+          >
             Каталог
           </Link>
           <Link href="/" className="nav-link">
