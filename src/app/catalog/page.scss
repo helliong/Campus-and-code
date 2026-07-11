@@ -120,11 +120,11 @@
           }
 
           &.active {
-            background: rgba(139, 233, 253, 0.1); // light teal tint
-            border-color: rgba(139, 233, 253, 0.3);
+            background: var(--catalog-accent-light);
+            border-color: var(--catalog-accent-border);
             
             .cat-icon {
-              color: #8be9fd;
+              color: var(--catalog-accent);
             }
           }
         }
@@ -200,23 +200,24 @@
             &::-webkit-slider-thumb {
               pointer-events: all;
               appearance: none;
-              width: 14px;
-              height: 14px;
+              width: 16px;
+              height: 16px;
               border-radius: 50%;
               background: #fff;
-              box-shadow: 0 0 0 2px var(--bg-main);
+              border: 2px solid var(--catalog-accent);
+              box-shadow: 0 1px 3px rgba(0,0,0,0.2);
               cursor: pointer;
             }
             
             &::-moz-range-thumb {
               pointer-events: all;
-              width: 14px;
-              height: 14px;
+              width: 16px;
+              height: 16px;
               border-radius: 50%;
               background: #fff;
-              box-shadow: 0 0 0 2px var(--bg-main);
+              border: 2px solid var(--catalog-accent);
+              box-shadow: 0 1px 3px rgba(0,0,0,0.2);
               cursor: pointer;
-              border: none;
             }
           }
 
@@ -231,7 +232,7 @@
             .slider-range {
               position: absolute;
               height: 100%;
-              background: #8be9fd;
+              background: var(--catalog-accent);
               border-radius: 2px;
               z-index: 2;
             }
@@ -264,15 +265,16 @@
             width: 28px;
             height: 28px;
             border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             cursor: pointer;
             padding: 0;
             transition: all 0.2s;
 
             &.active {
               border-color: var(--bg-main);
+              border-width: 2px;
               transform: scale(1.15);
-              box-shadow: 0 0 0 2px #8be9fd;
+              box-shadow: 0 0 0 2px var(--catalog-accent);
             }
           }
         }
@@ -300,8 +302,8 @@
             display: none;
 
             &:checked + .checkmark {
-              background: #8be9fd;
-              border-color: #8be9fd;
+              background: var(--catalog-accent);
+              border-color: var(--catalog-accent);
               color: var(--bg-main);
               svg { display: block; }
             }

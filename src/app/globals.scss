@@ -45,6 +45,10 @@ button, input, a, p, span, .product-title, .card-title {
   --accent-beige: #E9DFD1;
   --accent-sand: #DDD0C1;
 
+  --catalog-accent: #101D33;
+  --catalog-accent-light: rgba(16, 29, 51, 0.1);
+  --catalog-accent-border: rgba(16, 29, 51, 0.3);
+
   --product-dark: #111923;
 }
 
@@ -73,6 +77,10 @@ body.dark-theme, [data-theme="dark"] {
   --accent-green: #123834;
   --accent-beige: #C8B79E;
   --accent-warm: #A88E6E;
+
+  --catalog-accent: #8be9fd;
+  --catalog-accent-light: rgba(139, 233, 253, 0.1);
+  --catalog-accent-border: rgba(139, 233, 253, 0.3);
 
   --product-dark: #050A0E;
 
