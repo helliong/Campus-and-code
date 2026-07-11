@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from '../types';
+import { generateSlug } from '../lib/utils';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import './ProductCard.scss';
@@ -46,9 +47,11 @@ export default function ProductCard({ product }: { product: Product }) {
     }
   };
 
+  const productUrl = `/product/${product.id}-${generateSlug(product.name)}`;
+
   return (
     <div className="product-card">
-      <Link href={`/product/${product.id}`} className="image-wrapper">
+      <Link href={productUrl} className="image-wrapper">
         <Image 
           src={product.imageUrl} 
           alt={product.name} 
@@ -72,7 +75,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </button>
       </Link>
       <div className="product-info">
-        <h3><Link href={`/product/${product.id}`}>{product.name}</Link></h3>
+        <h3><Link href={productUrl}>{product.name}</Link></h3>
         <p className="price">{product.price.toLocaleString('ru-RU')} ₽</p>
         
         {quantity > 0 ? (

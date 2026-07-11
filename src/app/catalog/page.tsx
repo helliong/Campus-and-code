@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { FiChevronRight, FiGrid, FiList, FiChevronDown, FiCheck, FiRefreshCw } from 'react-icons/fi';
 import { LuShirt, LuBook, LuCoffee, LuShoppingBag, LuTerminal } from 'react-icons/lu';
 import { PiHoodie, PiBaseballCap, PiSticker } from 'react-icons/pi';
@@ -49,16 +50,36 @@ const defaultFilters: FilterState = {
   inStock: false
 };
 
-export default function CatalogPage() {
+function CatalogContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragMoved, setDragMoved] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
+  // Read initial category from URL
+  const initialCategory = searchParams.get('category') || 'all';
+
   // Filters state
-  const [draftFilters, setDraftFilters] = useState<FilterState>(defaultFilters);
-  const [appliedFilters, setAppliedFilters] = useState<FilterState>(defaultFilters);
+  const [draftFilters, setDraftFilters] = useState<FilterState>({ ...defaultFilters, category: initialCategory });
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>({ ...defaultFilters, category: initialCategory });
+
+  // Update URL when applied category changes
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (appliedFilters.category !== 'all') {
+      params.set('category', appliedFilters.category);
+    } else {
+      params.delete('category');
+    }
+    
+    const newUrl = `${pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+    router.replace(newUrl, { scroll: false });
+  }, [appliedFilters.category, pathname, router]);
 
   const hasChanges = JSON.stringify(draftFilters) !== JSON.stringify(appliedFilters);
 
@@ -391,5 +412,13 @@ export default function CatalogPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function CatalogPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '4rem', textAlign: 'center' }}>Загрузка каталога...</div>}>
+      <CatalogContent />
+    </Suspense>
   );
 }

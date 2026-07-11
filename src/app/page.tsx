@@ -10,21 +10,21 @@ const categories = [
   {
     name: "Худи",
     count: 23,
-    id: "hoodies",
+    id: "hoodie",
     imageLight: "/category-hoodie-premium.png",
     imageDark: "/category-hoodie-white-premium.png",
   },
   {
     name: "Футболки",
     count: 34,
-    id: "tshirts",
+    id: "tshirt",
     imageLight: "/category-tshirt-premium.png",
     imageDark: "/category-tshirt-white-premium.png",
   },
   {
     name: "Стикеры",
     count: 28,
-    id: "stickers",
+    id: "sticker",
     imageLight: "/category-stickers-premium.png",
     imageDark: "/category-stickers-white-premium3.png",
   },
@@ -67,7 +67,7 @@ export default function Home() {
             для вдохновения каждый день.
           </p>
           <div className="hero-actions">
-            <Link href="#catalog" className="btn-primary">
+            <Link href="/catalog" className="btn-primary">
               Смотреть каталог
             </Link>
             <Link href="#collections" className="btn-outline">
@@ -120,7 +120,7 @@ export default function Home() {
         <div className="categories-grid">
           {categories.map((cat) => (
             <Link
-              href={`/category/${cat.id}`}
+              href={`/catalog?category=${cat.id}`}
               key={cat.id}
               className="category-card"
             >
@@ -185,7 +185,7 @@ export default function Home() {
       </section>
 
       <section className="promo-banners-section">
-        <Link href="/category/universities" className="promo-banner">
+        <Link href="/catalog?category=universities" className="promo-banner">
           <Image
             src="/banner-one.png"
             alt="Коллекции университетов"
@@ -205,7 +205,7 @@ export default function Home() {
             <span className="promo-banner-button">Смотреть коллекции</span>
           </span>
         </Link>
-        <Link href="/category/teams" className="promo-banner">
+        <Link href="/catalog?category=teams" className="promo-banner">
           <Image
             src="/banner-two.png"
             alt="IT-коллекции для разработчиков"

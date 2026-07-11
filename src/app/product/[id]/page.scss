@@ -4,6 +4,41 @@
   margin: 0 auto;
   flex-grow: 1;
 
+  .product-header-area {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+
+      a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.2s;
+
+        &:hover {
+          color: var(--text-main);
+        }
+      }
+
+      .separator {
+        font-size: 0.9rem;
+      }
+
+      .current {
+        color: var(--text-main);
+      }
+    }
+  }
+
   .product-container {
     display: flex;
     flex-wrap: wrap;
