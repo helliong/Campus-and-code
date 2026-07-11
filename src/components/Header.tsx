@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import type { FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoritesContext";
+import AuthModal from "./AuthModal";
 import "./Header.scss";
 
 export default function Header() {
@@ -14,6 +15,9 @@ export default function Header() {
   const { favorites } = useFavorites();
   const pathname = usePathname();
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+  
+  const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
+
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
   };
@@ -87,12 +91,22 @@ export default function Header() {
               </button>
             </div>
           ) : (
-            <Link href="/login" className="user-nav-link">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0-7a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 9c-4.14 0-7.5 2.58-7.5 5.75 0 .69.56 1.25 1.25 1.25h12.5c.69 0 1.25-.56 1.25-1.25C19.5 16.58 16.14 14 12 14Zm-5.38 5c.52-1.69 2.74-3 5.38-3s4.86 1.31 5.38 3H6.62Z" />
-              </svg>
-              <span>Профиль</span>
-            </Link>
+            <>
+              <button 
+                className={`user-nav-link ${isProfilePopupOpen ? 'active' : ''}`}
+                onClick={() => setIsProfilePopupOpen(true)}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0-7a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 9c-4.14 0-7.5 2.58-7.5 5.75 0 .69.56 1.25 1.25 1.25h12.5c.69 0 1.25-.56 1.25-1.25C19.5 16.58 16.14 14 12 14Zm-5.38 5c.52-1.69 2.74-3 5.38-3s4.86 1.31 5.38 3H6.62Z" />
+                </svg>
+                <span>Профиль</span>
+              </button>
+              
+              <AuthModal 
+                isOpen={isProfilePopupOpen} 
+                onClose={() => setIsProfilePopupOpen(false)} 
+              />
+            </>
           )}
           <Link href="/favorites" className="user-nav-link cart-link">
             <span className="cart-icon-wrapper">
