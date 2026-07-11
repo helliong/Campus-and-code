@@ -118,7 +118,10 @@ export default function Home() {
       </section>
 
       <section className="catalog-section" id="catalog">
-        <h2>Популярные товары</h2>
+        <div className="section-header">
+          <h2>Популярные товары</h2>
+          <Link href="/catalog" className="view-all">Смотреть все &rarr;</Link>
+        </div>
         <div className="product-grid">
           {mockProducts.map((product) => (
             <ProductCard key={product.id} product={product} />

@@ -9,7 +9,7 @@
 
   .hero-section {
     display: grid;
-    grid-template-columns: 40% 60%;
+    grid-template-columns: 45% 60%;
     gap: 2rem;
     align-items: center;
     // background-color: var(--bg-card);
@@ -242,38 +242,50 @@
   }
 
   .catalog-section {
-    h2 {
-      font-size: 2.2rem;
-      margin-bottom: 2.5rem;
-      color: var(--text-main);
-      font-weight: 700;
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+
+      h2 {
+        font-size: 1.8rem;
+        color: #fff;
+        font-weight: 500;
+        margin: 0;
+        font-family: Georgia, serif;
+      }
+      
+      .view-all {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        transition: color 0.2s;
+        
+        &:hover {
+          color: #fff;
+        }
+      }
     }
     
     .product-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      justify-content: flex-start;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1.25rem;
       width: 100%;
 
-      & > * {
-        flex: 0 0 calc(33.333% - 1.34rem);
-        max-width: calc(33.333% - 1.34rem);
-        width: 100%;
+      @media (max-width: 1200px) {
+        grid-template-columns: repeat(4, 1fr);
       }
 
-      @media (max-width: 1024px) {
-        & > * {
-          flex: 0 0 calc(50% - 1rem);
-          max-width: calc(50% - 1rem);
-        }
+      @media (max-width: 900px) {
+        grid-template-columns: repeat(3, 1fr);
       }
 
       @media (max-width: 650px) {
-        & > * {
-          flex: 0 0 100%;
-          max-width: 100%;
-        }
+        grid-template-columns: repeat(2, 1fr);
       }
     }
   }
