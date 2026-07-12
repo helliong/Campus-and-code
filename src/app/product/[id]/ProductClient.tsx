@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { mockProducts } from "../../../lib/mockData";
-
-// Add this component before ProductClient or inside the file:
+import { generateSlug } from "../../../lib/utils";
 function RelatedProductCard({ product, customStyle, customContent }: { product: Product, customStyle: any, customContent: React.ReactNode }) {
   const { items, addToCart, updateQuantity } = useCart();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
@@ -33,20 +34,24 @@ function RelatedProductCard({ product, customStyle, customContent }: { product: 
   };
 
   const categoryNames: Record<string, string> = {
-    hoodie: "Одежда", tshirt: "Одежда", sticker: "Стикеры", accessories: "Аксессуары", mug: "Кружки", other: "Разное"
+    hoodie: "Худи", tshirt: "Футболки", sticker: "Стикеры", accessories: "Аксессуары", mug: "Кружки", other: "Разное"
   };
+
+  const productUrl = `/product/${product.id}-${generateSlug(product.name)}`;
 
   return (
     <div className="product-card">
       <button className={`fav-btn ${favorite ? 'active' : ''}`} onClick={handleFavoriteToggle}>
         <FiHeart style={favorite ? { fill: '#ff4757', color: '#ff4757' } : {}} />
       </button>
-      <div className="card-img" style={customStyle}>
+      <Link href={productUrl} className="card-img" style={{...customStyle, display: 'block', textDecoration: 'none'}}>
         {customContent}
-      </div>
+      </Link>
       <div className="card-info">
         <span className="card-cat">{categoryNames[product.category] || "Разное"}</span>
-        <span className="card-title">{product.name}</span>
+        <Link href={productUrl} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <span className="card-title">{product.name}</span>
+        </Link>
         <div className="card-bottom">
           <span className="card-price">{product.price.toLocaleString("ru-RU")} ₽</span>
           {quantity > 0 ? (
@@ -65,7 +70,6 @@ function RelatedProductCard({ product, customStyle, customContent }: { product: 
     </div>
   );
 }
-import Link from "next/link";
 import {
   FiChevronRight,
   FiChevronLeft,
@@ -80,6 +84,8 @@ import {
   FiFeather,
   FiBookOpen,
   FiMaximize,
+  FiX,
+  FiInfo,
 } from "react-icons/fi";
 import { useCart } from "../../../context/CartContext";
 import { useFavorites } from "../../../context/FavoritesContext";
@@ -91,8 +97,9 @@ export default function ProductClient({ product }: { product: Product }) {
 
   const favorite = isFavorite(product.id);
 
-  const sizesToRender = product.availableSizes || ["S", "M", "L", "XL", "XXL"];
-  const [sizeState, setSizeState] = useState(sizesToRender[0] || "M");
+  const sizesToRender = product.availableSizes || [];
+  const [sizeState, setSizeState] = useState(sizesToRender[0] || "");
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
   const colorsMap: Record<string, string> = {
     black: "#1A1A1A",
@@ -285,25 +292,27 @@ export default function ProductClient({ product }: { product: Product }) {
               </div>
             </div>
 
-            <div className="size-selection">
-              <div className="size-header">
-                <p>Размер:</p>
-                <button className="size-guide-btn">
-                  <FiMaximize /> Таблица размеров
-                </button>
-              </div>
-              <div className="sizes">
-                {sizesToRender.map((size) => (
-                  <button
-                    key={size}
-                    className={`size-btn ${sizeState === size ? "active" : ""}`}
-                    onClick={() => setSizeState(size)}
-                  >
-                    {size}
+            {product.availableSizes && product.availableSizes.length > 0 && (
+              <div className="size-selection">
+                <div className="size-header">
+                  <p>Размер:</p>
+                  <button className="size-guide-btn" onClick={() => setIsSizeGuideOpen(true)}>
+                    <FiMaximize /> Таблица размеров
                   </button>
-                ))}
+                </div>
+                <div className="sizes">
+                  {sizesToRender.map((size) => (
+                    <button
+                      key={size}
+                      className={`size-btn ${sizeState === size ? "active" : ""}`}
+                      onClick={() => setSizeState(size)}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="actions">
               {quantity > 0 ? (
@@ -493,6 +502,92 @@ export default function ProductClient({ product }: { product: Product }) {
             })}
           </div>
         </div>
+
+        {isSizeGuideOpen && (
+          <div className="size-guide-overlay" onClick={() => setIsSizeGuideOpen(false)}>
+            <div className="size-guide-modal" onClick={e => e.stopPropagation()}>
+              <button className="close-btn" onClick={() => setIsSizeGuideOpen(false)}>
+                <FiX />
+              </button>
+              <h2>Таблица размеров</h2>
+              <p className="subtitle">{product.name}</p>
+              
+              <div className="table-wrapper">
+                <p className="table-title">Размеры {product.category === 'hoodie' ? 'худи' : 'футболки'} (см)</p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Размер</th>
+                      <th>Ширина груди (A)</th>
+                      <th>Длина изделия (B)</th>
+                      <th>Длина рукава (C)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>S</td><td>52–54</td><td>66–68</td><td>61–63</td></tr>
+                    <tr><td>M</td><td>55–57</td><td>68–70</td><td>63–65</td></tr>
+                    <tr><td>L</td><td>58–60</td><td>70–72</td><td>65–67</td></tr>
+                    <tr><td>XL</td><td>61–63</td><td>72–74</td><td>67–69</td></tr>
+                    <tr><td>XXL</td><td>64–66</td><td>74–76</td><td>69–71</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="guide-details">
+                <div className="guide-illustration">
+                  {product.category === 'hoodie' ? (
+                    <Image
+                      src="/size-guide-hoodie-transparent.png"
+                      alt="Схема замеров худи"
+                      width={320}
+                      height={320}
+                      className="guide-illustration-image"
+                    />
+                  ) : (
+                    <Image
+                      src="/size-guide-tshirt-transparent.png"
+                      alt="Схема замеров футболки"
+                      width={320}
+                      height={320}
+                      className="guide-illustration-image"
+                    />
+                  )}
+                </div>
+                <div className="guide-legend">
+                  <div className="legend-item">
+                    <span className="legend-marker">A</span>
+                    <div className="legend-text">
+                      <h4>Ширина груди</h4>
+                      <p>Измерьте расстояние между подмышечными впадинами по самой широкой части груди.</p>
+                    </div>
+                  </div>
+                  <div className="legend-item">
+                    <span className="legend-marker">B</span>
+                    <div className="legend-text">
+                      <h4>Длина изделия</h4>
+                      <p>Измерьте длину от самой высокой точки плеча до нижнего края изделия.</p>
+                    </div>
+                  </div>
+                  <div className="legend-item">
+                    <span className="legend-marker">C</span>
+                    <div className="legend-text">
+                      <h4>Длина рукава</h4>
+                      <p>Измерьте длину рукава от плечевого шва до конца манжеты.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="guide-footer">
+                <FiInfo />
+                <div className="footer-text">
+                  <strong>Допустимое отклонение: ±1–2 см</strong>
+                  <p>Размер может незначительно отличаться в зависимости от модели.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
