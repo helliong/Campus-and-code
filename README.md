@@ -24,18 +24,21 @@
 ## 🛠️ Установка и запуск (Локально)
 
 1. Клонируйте репозиторий:
+
    ```bash
    git clone <URL_репозитория>
    cd uni-practice-app
    ```
 
 2. Установите зависимости:
+
    ```bash
    npm install
    ```
 
 3. Настройте переменные окружения:
    Создайте файл `.env` в корне проекта и добавьте строку подключения к вашей БД PostgreSQL и секреты:
+
    ```env
    DATABASE_URL="postgresql://user:password@localhost:5432/uni_practice_app?schema=public"
    NEXTAUTH_SECRET="your-secret-key"
@@ -43,12 +46,14 @@
    ```
 
 4. Примените миграции базы данных и сгенерируйте Prisma Client:
+
    ```bash
    npx prisma migrate dev
    npx prisma generate
    ```
 
 5. Запустите сервер для разработки:
+
    ```bash
    npm run dev
    ```
