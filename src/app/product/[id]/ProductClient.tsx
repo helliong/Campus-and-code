@@ -1,6 +1,70 @@
 "use client";
 
 import { useState } from "react";
+import { mockProducts } from "../../../lib/mockData";
+
+// Add this component before ProductClient or inside the file:
+function RelatedProductCard({ product, customStyle, customContent }: { product: Product, customStyle: any, customContent: React.ReactNode }) {
+  const { items, addToCart, updateQuantity } = useCart();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  
+  const favorite = isFavorite(product.id);
+  const cartItem = items.find(item => item.product.id === product.id && !item.selectedSize && !item.selectedColor);
+  // Note: For simple products like mugs/stickers we might not have size/color. 
+  // If we want to safely match, let's just match by ID for these related products.
+  const matchedCartItem = items.find(item => item.product.id === product.id);
+  const quantity = matchedCartItem ? matchedCartItem.quantity : 0;
+  
+  const handleFavoriteToggle = () => {
+    if (favorite) removeFavorite(product.id);
+    else addFavorite(product);
+  };
+  
+  const handleAddToCart = () => {
+    addToCart(product, 1);
+  };
+  
+  const handleIncrement = () => {
+    if (matchedCartItem) updateQuantity(product.id, quantity + 1, matchedCartItem.selectedSize, matchedCartItem.selectedColor);
+  };
+  
+  const handleDecrement = () => {
+    if (matchedCartItem) updateQuantity(product.id, quantity - 1, matchedCartItem.selectedSize, matchedCartItem.selectedColor);
+  };
+
+  const categoryNames: Record<string, string> = {
+    hoodie: "Одежда", tshirt: "Одежда", sticker: "Стикеры", accessories: "Аксессуары", mug: "Кружки", other: "Разное"
+  };
+
+  return (
+    <div className="product-card">
+      <button className={`fav-btn ${favorite ? 'active' : ''}`} onClick={handleFavoriteToggle}>
+        <FiHeart style={favorite ? { fill: '#ff4757', color: '#ff4757' } : {}} />
+      </button>
+      <div className="card-img" style={customStyle}>
+        {customContent}
+      </div>
+      <div className="card-info">
+        <span className="card-cat">{categoryNames[product.category] || "Разное"}</span>
+        <span className="card-title">{product.name}</span>
+        <div className="card-bottom">
+          <span className="card-price">{product.price.toLocaleString("ru-RU")} ₽</span>
+          {quantity > 0 ? (
+            <div className="quantity-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', overflow: 'hidden', height: '32px', width: '80px' }}>
+              <button onClick={handleDecrement} style={{ width: '28px', height: '100%', background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>-</button>
+              <span style={{ flex: 1, textAlign: 'center', color: 'var(--text-main)', fontSize: '0.9rem' }}>{quantity}</span>
+              <button onClick={handleIncrement} style={{ width: '28px', height: '100%', background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+            </div>
+          ) : (
+            <button className="cart-btn" onClick={handleAddToCart} style={{ height: '32px', width: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+              <FiShoppingCart />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 import Link from "next/link";
 import {
   FiChevronRight,
@@ -59,6 +123,14 @@ export default function ProductClient({ product }: { product: Product }) {
   );
   const quantity = cartItem ? cartItem.quantity : 0;
 
+  const handleIncrement = () => {
+    updateQuantity(product.id, quantity + 1, sizeState, colorState);
+  };
+
+  const handleDecrement = () => {
+    updateQuantity(product.id, quantity - 1, sizeState, colorState);
+  };
+
   const handleAddToCart = () => {
     if (quantity > 0) {
       updateQuantity(product.id, quantity + 1, sizeState, colorState);
@@ -73,8 +145,8 @@ export default function ProductClient({ product }: { product: Product }) {
   };
 
   const categoryNames: Record<string, string> = {
-    hoodie: "Одежда",
-    tshirt: "Одежда",
+    hoodie: "Худи",
+    tshirt: "Футболки",
     sticker: "Стикеры",
     accessories: "Аксессуары",
     mug: "Кружки",
@@ -126,8 +198,8 @@ export default function ProductClient({ product }: { product: Product }) {
               <button className="favorite-btn" onClick={handleFavoriteToggle}>
                 <FiHeart
                   style={{
-                    fill: favorite ? "#fff" : "transparent",
-                    color: favorite ? "#fff" : "inherit",
+                    fill: favorite ? "#ff4757" : "transparent",
+                    color: favorite ? "#ff4757" : "inherit",
                   }}
                 />
               </button>
@@ -234,12 +306,17 @@ export default function ProductClient({ product }: { product: Product }) {
             </div>
 
             <div className="actions">
-              <button className="add-to-cart-btn" onClick={handleAddToCart}>
-                <FiShoppingCart />
-                {quantity > 0
-                  ? `В корзине (${quantity} шт)`
-                  : "Добавить в корзину"}
-              </button>
+              {quantity > 0 ? (
+                <div className="quantity-controls-main">
+                  <button className="qty-btn" onClick={handleDecrement}>-</button>
+                  <span className="qty-value">В корзине ({quantity} шт)</span>
+                  <button className="qty-btn" onClick={handleIncrement}>+</button>
+                </div>
+              ) : (
+                <button className="add-to-cart-btn" onClick={handleAddToCart}>
+                  <FiShoppingCart /> Добавить в корзину
+                </button>
+              )}
               <button className="quick-buy-btn">
                 <span className="lightning">⚡</span> Купить в пару кликов
               </button>
@@ -357,210 +434,63 @@ export default function ProductClient({ product }: { product: Product }) {
         <div className="related-products">
           <h2>С этим товаром покупают</h2>
           <div className="products-grid">
-            <div className="product-card">
-              <button className="fav-btn">
-                <FiHeart />
-              </button>
-              <div
-                className="card-img"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at center, #1a1a1a, #0a0a0a)",
-                }}
-              >
-                <div
-                  className="placeholder"
-                  style={{
-                    color: "#fff",
-                    fontSize: "1rem",
-                    fontFamily: "monospace",
-                  }}
-                >
-                  {"{"} code {"}"}
-                  <br />
-                  mode
-                </div>
-              </div>
-              <div className="card-info">
-                <span className="card-cat">Кружки</span>
-                <span className="card-title">Кружка Code Mode</span>
-                <div className="card-bottom">
-                  <span className="card-price">690 ₽</span>
-                  <button className="cart-btn">
-                    <FiShoppingCart />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="product-card">
-              <button className="fav-btn">
-                <FiHeart />
-              </button>
-              <div
-                className="card-img"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at center, #dcd1c6, #c5b8ab)",
-                }}
-              >
-                <div
-                  className="placeholder"
-                  style={{
-                    color: "#000",
-                    fontSize: "1.2rem",
-                    fontWeight: "bold",
-                    textAlign: "center",
-                  }}
-                >
-                  CODE
-                  <br />
-                  MODE
-                  <br />
-                  <span style={{ fontSize: "0.8rem" }}>&lt;/&gt;</span>
-                </div>
-              </div>
-              <div className="card-info">
-                <span className="card-cat">Сумки</span>
-                <span className="card-title">Шоппер Code Mode</span>
-                <div className="card-bottom">
-                  <span className="card-price">890 ₽</span>
-                  <button className="cart-btn">
-                    <FiShoppingCart />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="product-card">
-              <button className="fav-btn">
-                <FiHeart />
-              </button>
-              <div
-                className="card-img"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at center, #2a2a2a, #111)",
-                }}
-              >
-                <div
-                  className="placeholder"
-                  style={{ color: "#fff", fontSize: "1rem" }}
-                >
-                  Developer
-                </div>
-              </div>
-              <div className="card-info">
-                <span className="card-cat">Аксессуары</span>
-                <span className="card-title">Кепка Developer</span>
-                <div className="card-bottom">
-                  <span className="card-price">990 ₽</span>
-                  <button className="cart-btn">
-                    <FiShoppingCart />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="product-card">
-              <button className="fav-btn">
-                <FiHeart />
-              </button>
-              <div
-                className="card-img"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at center, #222, #000)",
-                }}
-              >
-                <div
-                  className="placeholder"
-                  style={{
-                    color: "#d4af37",
-                    fontSize: "1rem",
-                    textAlign: "center",
-                  }}
-                >
-                  CODE
-                  <br />
-                  PLAN
-                  <br />
-                  BUILD
-                  <br />
-                  REPEAT
-                </div>
-              </div>
-              <div className="card-info">
-                <span className="card-cat">Блокноты</span>
-                <span className="card-title">Блокнот Code Plan</span>
-                <div className="card-bottom">
-                  <span className="card-price">590 ₽</span>
-                  <button className="cart-btn">
-                    <FiShoppingCart />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="product-card">
-              <button className="fav-btn">
-                <FiHeart />
-              </button>
-              <div
-                className="card-img"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at center, #1a2a40, #121820)",
-                }}
-              >
-                <div
-                  className="placeholder"
-                  style={{
-                    display: "flex",
-                    gap: "0.5rem",
-                    flexWrap: "wrap",
-                    justifyContent: "center",
-                  }}
-                >
-                  <span
-                    style={{
-                      background: "#fff",
-                      color: "#000",
-                      padding: "0.2rem 0.5rem",
-                      borderRadius: "4px",
-                      fontSize: "0.8rem",
-                    }}
-                  >
-                    git commit
-                  </span>
-                  <span
-                    style={{
-                      background: "#111",
-                      color: "#fff",
-                      padding: "0.2rem 0.5rem",
-                      borderRadius: "4px",
-                      border: "1px solid #333",
-                      fontSize: "0.8rem",
-                      fontFamily: "monospace",
-                    }}
-                  >
-                    {"{"} code {"}"}
-                    <br />
-                    mode
-                  </span>
-                </div>
-              </div>
-              <div className="card-info">
-                <span className="card-cat">Стикеры</span>
-                <span className="card-title">Стикерпак Dev</span>
-                <div className="card-bottom">
-                  <span className="card-price">390 ₽</span>
-                  <button className="cart-btn">
-                    <FiShoppingCart />
-                  </button>
-                </div>
-              </div>
-            </div>
+            {[
+              {
+                id: '11',
+                customStyle: { backgroundImage: "radial-gradient(circle at center, #1a1a1a, #0a0a0a)" },
+                customContent: (
+                  <div className="placeholder" style={{ color: "#fff", fontSize: "1rem", fontFamily: "monospace" }}>
+                    {"{"} code {"}"}<br />mode
+                  </div>
+                )
+              },
+              {
+                id: '6',
+                customStyle: { backgroundImage: "radial-gradient(circle at center, #dcd1c6, #c5b8ab)" },
+                customContent: (
+                  <div className="placeholder" style={{ color: "#000", fontSize: "1.2rem", fontWeight: "bold", textAlign: "center" }}>
+                    CODE<br />MODE<br /><span style={{ fontSize: "0.8rem" }}>&lt;/&gt;</span>
+                  </div>
+                )
+              },
+              {
+                id: '4',
+                customStyle: { backgroundImage: "radial-gradient(circle at center, #2a2a2a, #111)" },
+                customContent: (
+                  <div className="placeholder" style={{ color: "#fff", fontSize: "1rem" }}>Developer</div>
+                )
+              },
+              {
+                id: '12',
+                customStyle: { backgroundImage: "radial-gradient(circle at center, #222, #000)" },
+                customContent: (
+                  <div className="placeholder" style={{ color: "#d4af37", fontSize: "1rem", textAlign: "center" }}>
+                    CODE<br />PLAN<br />BUILD<br />REPEAT
+                  </div>
+                )
+              },
+              {
+                id: '10',
+                customStyle: { backgroundImage: "radial-gradient(circle at center, #1a2a40, #121820)" },
+                customContent: (
+                  <div className="placeholder" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
+                    <span style={{ background: "#fff", color: "#000", padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: "0.8rem" }}>git commit</span>
+                    <span style={{ background: "#111", color: "#fff", padding: "0.2rem 0.5rem", borderRadius: "4px", border: "1px solid #333", fontSize: "0.8rem", fontFamily: "monospace" }}>{"{"} code {"}"}<br />mode</span>
+                  </div>
+                )
+              }
+            ].map((data) => {
+              const p = mockProducts.find(p => p.id === data.id);
+              if (!p) return null;
+              return (
+                <RelatedProductCard 
+                  key={p.id}
+                  product={p} 
+                  customStyle={data.customStyle} 
+                  customContent={data.customContent} 
+                />
+              );
+            })}
           </div>
         </div>
       </main>
