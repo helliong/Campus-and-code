@@ -193,8 +193,7 @@ export default function ProductClient({ product }: { product: Product }) {
                   <div
                     className="img-placeholder"
                     style={{
-                      backgroundImage:
-                        "radial-gradient(circle at center, #1a2a40, #121820)",
+                      backgroundImage: "var(--product-image-gradient)",
                     }}
                   />
                 </div>
@@ -243,10 +242,10 @@ export default function ProductClient({ product }: { product: Product }) {
 
             <div className="product-meta">
               <div className="rating">
-                <FiStar className="star filled" style={{ fill: "#fff" }} />
-                <FiStar className="star filled" style={{ fill: "#fff" }} />
-                <FiStar className="star filled" style={{ fill: "#fff" }} />
-                <FiStar className="star filled" style={{ fill: "#fff" }} />
+                <FiStar className="star filled" style={{ fill: "currentColor" }} />
+                <FiStar className="star filled" style={{ fill: "currentColor" }} />
+                <FiStar className="star filled" style={{ fill: "currentColor" }} />
+                <FiStar className="star filled" style={{ fill: "currentColor" }} />
                 <FiStar
                   className="star half"
                   style={{ fill: "url(#halfGradient)" }}
@@ -254,7 +253,7 @@ export default function ProductClient({ product }: { product: Product }) {
                 <svg width="0" height="0">
                   <defs>
                     <linearGradient id="halfGradient">
-                      <stop offset="50%" stopColor="#fff" />
+                      <stop offset="50%" stopColor="var(--text-main)" />
                       <stop
                         offset="50%"
                         stopColor="transparent"
@@ -446,9 +445,9 @@ export default function ProductClient({ product }: { product: Product }) {
             {[
               {
                 id: '11',
-                customStyle: { backgroundImage: "radial-gradient(circle at center, #1a1a1a, #0a0a0a)" },
+                customStyle: { backgroundImage: "var(--product-image-gradient)" },
                 customContent: (
-                  <div className="placeholder" style={{ color: "#fff", fontSize: "1rem", fontFamily: "monospace" }}>
+                  <div className="placeholder" style={{ color: "var(--text-main)", fontSize: "1rem", fontFamily: "monospace" }}>
                     {"{"} code {"}"}<br />mode
                   </div>
                 )
@@ -464,9 +463,9 @@ export default function ProductClient({ product }: { product: Product }) {
               },
               {
                 id: '4',
-                customStyle: { backgroundImage: "radial-gradient(circle at center, #2a2a2a, #111)" },
+                customStyle: { backgroundImage: "var(--product-image-gradient)" },
                 customContent: (
-                  <div className="placeholder" style={{ color: "#fff", fontSize: "1rem" }}>Developer</div>
+                  <div className="placeholder" style={{ color: "var(--text-main)", fontSize: "1rem" }}>Developer</div>
                 )
               },
               {
@@ -480,11 +479,11 @@ export default function ProductClient({ product }: { product: Product }) {
               },
               {
                 id: '10',
-                customStyle: { backgroundImage: "radial-gradient(circle at center, #1a2a40, #121820)" },
+                customStyle: { backgroundImage: "var(--product-image-gradient)" },
                 customContent: (
                   <div className="placeholder" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
-                    <span style={{ background: "#fff", color: "#000", padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: "0.8rem" }}>git commit</span>
-                    <span style={{ background: "#111", color: "#fff", padding: "0.2rem 0.5rem", borderRadius: "4px", border: "1px solid #333", fontSize: "0.8rem", fontFamily: "monospace" }}>{"{"} code {"}"}<br />mode</span>
+                    <span style={{ background: "var(--text-main)", color: "var(--bg-card)", padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: "0.8rem" }}>git commit</span>
+                    <span style={{ background: "var(--bg-card)", color: "var(--text-main)", padding: "0.2rem 0.5rem", borderRadius: "4px", border: "1px solid var(--border-color)", fontSize: "0.8rem", fontFamily: "monospace" }}>{"{"} code {"}"}<br />mode</span>
                   </div>
                 )
               }
@@ -536,21 +535,39 @@ export default function ProductClient({ product }: { product: Product }) {
               <div className="guide-details">
                 <div className="guide-illustration">
                   {product.category === 'hoodie' ? (
-                    <Image
-                      src="/size-guide-hoodie-transparent.png"
-                      alt="Схема замеров худи"
-                      width={320}
-                      height={320}
-                      className="guide-illustration-image"
-                    />
+                    <>
+                      <Image
+                        src="/size-guide-hoodie-light.png"
+                        alt="Схема замеров худи"
+                        width={320}
+                        height={320}
+                        className="guide-illustration-image guide-illustration-image--light"
+                      />
+                      <Image
+                        src="/size-guide-hoodie-transparent.png"
+                        alt="Схема замеров худи"
+                        width={320}
+                        height={320}
+                        className="guide-illustration-image guide-illustration-image--dark"
+                      />
+                    </>
                   ) : (
-                    <Image
-                      src="/size-guide-tshirt-transparent.png"
-                      alt="Схема замеров футболки"
-                      width={320}
-                      height={320}
-                      className="guide-illustration-image"
-                    />
+                    <>
+                      <Image
+                        src="/size-guide-tshirt-light.png"
+                        alt="Схема замеров футболки"
+                        width={320}
+                        height={320}
+                        className="guide-illustration-image guide-illustration-image--light"
+                      />
+                      <Image
+                        src="/size-guide-tshirt-transparent.png"
+                        alt="Схема замеров футболки"
+                        width={320}
+                        height={320}
+                        className="guide-illustration-image guide-illustration-image--dark"
+                      />
+                    </>
                   )}
                 </div>
                 <div className="guide-legend">
