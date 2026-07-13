@@ -62,7 +62,7 @@ export const mockProducts: Product[] = [
     name: 'Шоппер Code Mode',
     description: 'Вместительный шоппер для ноутбука и конспектов.',
     price: 890,
-    imageUrl: '/category-university-premium.webp',
+    imageUrl: '/category-university-grey.webp',
     category: 'other',
     materials: ['Хлопок', 'Холст'],
     inStock: true,

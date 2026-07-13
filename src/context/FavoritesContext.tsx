@@ -1,88 +1,64 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
-import { Product } from '../types';
-import { useSession } from 'next-auth/react';
-import { mockProducts } from '../lib/mockData';
+import { ReactNode, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
+import { Product } from "@/types";
+import { mockProducts } from "@/lib/mockData";
+import { useFavoritesStore } from "@/store/favoritesStore";
 
-interface FavoritesContextType {
-  favorites: Product[];
-  addFavorite: (product: Product) => void;
-  removeFavorite: (productId: string) => void;
-  isFavorite: (productId: string) => boolean;
+function mapFavoriteIds(productIds: string[]): Product[] {
+  return productIds
+    .map((productId) => mockProducts.find((product) => product.id === productId))
+    .filter((product): product is Product => Boolean(product));
 }
 
-const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
-
-export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
+function FavoritesSync() {
   const { status } = useSession();
-  const [favorites, setFavorites] = useState<Product[]>([]);
   const isInitialSyncDone = useRef(false);
 
   useEffect(() => {
-    if (status === 'authenticated' && !isInitialSyncDone.current) {
-      isInitialSyncDone.current = true;
-      fetch('/api/user/favorites/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'merge', localFavorites: favorites.map(p => p.id) })
-      })
-      .then(res => res.json())
-      .then(data => {
+    if (status === "unauthenticated") {
+      useFavoritesStore.getState().setDbSyncEnabled(false);
+      isInitialSyncDone.current = false;
+      return;
+    }
+
+    if (status !== "authenticated" || isInitialSyncDone.current) return;
+
+    isInitialSyncDone.current = true;
+    const currentFavorites = useFavoritesStore.getState().favorites;
+
+    fetch("/api/user/favorites/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "merge",
+        localFavorites: currentFavorites.map((product) => product.id),
+      }),
+    })
+      .then((response) => response.json())
+      .then((data: { favorites?: string[] }) => {
         if (data.favorites) {
-          const mergedProducts = data.favorites
-            .map((id: string) => mockProducts.find(p => p.id === id))
-            .filter(Boolean) as Product[];
-          setFavorites(mergedProducts);
+          useFavoritesStore.getState().setFavorites(mapFavoriteIds(data.favorites));
         }
+        useFavoritesStore.getState().setDbSyncEnabled(true);
+      })
+      .catch((error) => {
+        console.error("Favorites sync error", error);
+        useFavoritesStore.getState().setDbSyncEnabled(true);
       });
-    }
-  }, [status, favorites]);
+  }, [status]);
 
-  const syncToDb = (newFavorites: Product[]) => {
-    if (status === 'authenticated') {
-      fetch('/api/user/favorites/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'save', localFavorites: newFavorites.map(p => p.id) })
-      }).catch(err => console.error("Sync error", err));
-    }
-  };
+  return null;
+}
 
-  const addFavorite = (product: Product) => {
-    setFavorites((prev) => {
-      if (!prev.find((p) => p.id === product.id)) {
-        const next = [...prev, product];
-        syncToDb(next);
-        return next;
-      }
-      return prev;
-    });
-  };
-
-  const removeFavorite = (productId: string) => {
-    setFavorites((prev) => {
-      const next = prev.filter((p) => p.id !== productId);
-      syncToDb(next);
-      return next;
-    });
-  };
-
-  const isFavorite = (productId: string) => {
-    return favorites.some((p) => p.id === productId);
-  };
-
+export const FavoritesProvider = ({ children }: { children: ReactNode }) => {
   return (
-    <FavoritesContext.Provider value={{ favorites, addFavorite, removeFavorite, isFavorite }}>
+    <>
+      <FavoritesSync />
       {children}
-    </FavoritesContext.Provider>
+    </>
   );
 };
 
-export const useFavorites = () => {
-  const context = useContext(FavoritesContext);
-  if (context === undefined) {
-    throw new Error('useFavorites must be used within a FavoritesProvider');
-  }
-  return context;
-};
+export const useFavorites = useFavoritesStore;
