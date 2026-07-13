@@ -169,7 +169,7 @@ export default function SizesPage() {
         <div className="size-visual" aria-label="Схема измерений худи">
           <Image
             className="size-image-light"
-            src="/size-guide-hoodie-light.png"
+            src="/size-guide-hoodie-light.webp"
             alt="Схема измерений худи"
             width={1256}
             height={1256}
@@ -177,7 +177,7 @@ export default function SizesPage() {
           />
           <Image
             className="size-image-dark"
-            src="/size-guide-hoodie-transparent.png"
+            src="/size-guide-hoodie-transparent.webp"
             alt="Схема измерений худи"
             width={1256}
             height={1256}
@@ -228,14 +228,14 @@ export default function SizesPage() {
         <div className="size-visual" aria-label="Схема измерений футболки">
           <Image
             className="size-image-light"
-            src="/size-guide-tshirt-light.png"
+            src="/size-guide-tshirt-light.webp"
             alt="Схема измерений футболки"
             width={1256}
             height={1256}
           />
           <Image
             className="size-image-dark"
-            src="/size-guide-tshirt-transparent.png"
+            src="/size-guide-tshirt-transparent.webp"
             alt="Схема измерений футболки"
             width={1256}
             height={1256}

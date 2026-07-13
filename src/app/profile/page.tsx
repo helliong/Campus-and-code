@@ -18,7 +18,7 @@ const mockRecommendations: Product[] = [
     description: "Мягкое худи для долгих сессий кодинга",
     category: "hoodie",
     price: 3690,
-    imageUrl: "/category-hoodie-premium.png",
+    imageUrl: "/category-hoodie-premium.webp",
     availableSizes: ["S", "M", "L", "XL"],
     availableColors: ["black"],
   },
@@ -28,7 +28,7 @@ const mockRecommendations: Product[] = [
     description: "Керамическая кружка",
     category: "mug",
     price: 690,
-    imageUrl: "/category-mug-premium.png",
+    imageUrl: "/category-mug-premium.webp",
   },
   {
     id: "rec3",
@@ -36,7 +36,7 @@ const mockRecommendations: Product[] = [
     description: "Набор виниловых наклеек",
     category: "sticker",
     price: 390,
-    imageUrl: "/category-stickers-premium.png",
+    imageUrl: "/category-stickers-premium.webp",
   },
   {
     id: "rec4",
@@ -44,7 +44,7 @@ const mockRecommendations: Product[] = [
     description: "Стильная черная кепка",
     category: "accessories",
     price: 990,
-    imageUrl: "/category-accessories-premium.png",
+    imageUrl: "/category-accessories-premium.webp",
   },
   {
     id: "rec5",
@@ -52,7 +52,7 @@ const mockRecommendations: Product[] = [
     description: "Ежедневник для программистов",
     category: "other",
     price: 590,
-    imageUrl: "/category-university-premium.png", // Or generic placeholder
+    imageUrl: "/category-university-premium.webp", // Or generic placeholder
   },
 ];
 

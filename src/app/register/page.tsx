@@ -106,7 +106,7 @@ export default function RegisterPage() {
       <div className="login-card">
         <div className="login-card-left register-left">
           <div className="merch-image-wrapper">
-            <img src="/auth-mockup-transparent.png?v=9" alt="Campus & Code Merch" />
+            <img src="/auth-mockup-transparent.webp?v=9" alt="Campus & Code Merch" />
           </div>
 
           <div className="register-benefits">

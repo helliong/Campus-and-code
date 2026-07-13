@@ -88,6 +88,10 @@
     align-items: start;
   }
 
+  .mobile-filters-toggle {
+    display: none;
+  }
+
   .favorites-filters {
     display: flex;
     flex-direction: column;
@@ -654,8 +658,38 @@
       width: 100%;
     }
 
+    .mobile-filters-toggle {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-main);
+      background: var(--bg-card);
+      font-size: 0.95rem;
+      font-weight: 600;
+
+      svg {
+        width: 20px;
+        height: 20px;
+        transition: transform 0.2s;
+
+        &.open {
+          transform: rotate(180deg);
+        }
+      }
+    }
+
     .favorites-filters {
+      display: none;
       grid-template-columns: 1fr;
+
+      &.open {
+        display: grid;
+      }
     }
 
     .favorites-toolbar {
@@ -677,6 +711,43 @@
       &.compact {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .product-card {
+        border-radius: 8px;
+
+        .image-wrapper {
+          aspect-ratio: 1 / 0.9;
+
+          .favorite-btn {
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+          }
+        }
+
+        .product-info {
+          padding: 0.75rem;
+
+          .category-name {
+            font-size: 0.7rem;
+          }
+
+          h3 {
+            margin-bottom: 0.35rem;
+            font-size: 0.82rem;
+            line-height: 1.2;
+          }
+
+          .price {
+            font-size: 0.92rem;
+          }
+
+          .card-actions {
+            padding-top: 0.75rem;
+          }
+        }
+      }
     }
   }
 
@@ -694,7 +765,35 @@
     .favorites-grid {
       &.grid,
       &.compact {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.7rem;
+      }
+
+      .product-card {
+        .product-info {
+          .card-actions {
+            &.compact-mode {
+              gap: 0.5rem;
+
+              .size-selector .size-btn {
+                min-width: 22px;
+                height: 24px;
+                font-size: 0.68rem;
+              }
+
+              .cart-icon-btn,
+              .quantity-controls.compact {
+                min-height: 28px;
+                height: 28px;
+              }
+
+              .cart-icon-btn {
+                width: 100%;
+                justify-content: center;
+              }
+            }
+          }
+        }
       }
     }
 

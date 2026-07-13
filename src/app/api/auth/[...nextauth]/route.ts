@@ -52,9 +52,12 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
       }
 
-      if (trigger === "update" && session?.user) {
-        token.name = session.user.name ?? token.name;
-        token.email = session.user.email ?? token.email;
+      if (trigger === "update") {
+        const dbUser = await prisma.user.findUnique({ where: { id: token.id as string } });
+        if (dbUser) {
+          token.name = dbUser.name;
+          token.email = dbUser.email;
+        }
       }
 
       return token;

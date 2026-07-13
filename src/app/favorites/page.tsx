@@ -59,6 +59,7 @@ export default function FavoritesPage() {
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(defaultFilters);
   const [sort, setSort] = useState<SortValue>("added");
   const [viewMode, setViewMode] = useState<"grid" | "compact">("grid");
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const categoryCounts = useMemo(() => getCategoryCounts(favorites), [favorites]);
   const categories = useMemo(
@@ -179,7 +180,24 @@ export default function FavoritesPage() {
         </section>
       ) : (
         <div className="favorites-layout">
-          <aside className="favorites-filters" aria-label="Фильтры избранного">
+          <button
+            className="mobile-filters-toggle"
+            type="button"
+            onClick={() => setIsFiltersOpen((current) => !current)}
+            aria-expanded={isFiltersOpen}
+            aria-controls="favorites-filters"
+          >
+            Фильтры
+            <svg className={isFiltersOpen ? "open" : ""} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          <aside
+            className={`favorites-filters ${isFiltersOpen ? "open" : ""}`}
+            id="favorites-filters"
+            aria-label="Фильтры избранного"
+          >
             <div className="filter-group">
               <h3>Категории</h3>
               <ul className="category-filter-list">

@@ -11,42 +11,42 @@ const categories = [
     name: "Худи",
     count: 23,
     id: "hoodie",
-    imageLight: "/category-hoodie-premium.png",
-    imageDark: "/category-hoodie-white-premium.png",
+    imageLight: "/category-hoodie-premium.webp",
+    imageDark: "/category-hoodie-white-premium.webp",
   },
   {
     name: "Футболки",
     count: 34,
     id: "tshirt",
-    imageLight: "/category-tshirt-premium.png",
-    imageDark: "/category-tshirt-white-premium.png",
+    imageLight: "/category-tshirt-premium.webp",
+    imageDark: "/category-tshirt-white-premium.webp",
   },
   {
     name: "Стикеры",
     count: 28,
     id: "sticker",
-    imageLight: "/category-stickers-premium.png",
-    imageDark: "/category-stickers-white-premium3.png",
+    imageLight: "/category-stickers-premium.webp",
+    imageDark: "/category-stickers-white-premium3.webp",
   },
   {
     name: "Аксессуары",
     count: 42,
     id: "accessories",
-    imageLight: "/category-accessories-premium.png",
-    imageDark: "/category-accessories-white-premium.png",
+    imageLight: "/category-accessories-premium.webp",
+    imageDark: "/category-accessories-white-premium.webp",
   },
   {
     name: "Университеты",
     count: 36,
     id: "universities",
-    image: "/category-university-grey.png",
+    image: "/category-university-grey.webp",
   },
   {
     name: "IT-команды",
     count: 18,
     id: "teams",
-    imageLight: "/category-teams-premium.png",
-    imageDark: "/category-teams-white-premium.png",
+    imageLight: "/category-teams-premium.webp",
+    imageDark: "/category-teams-white-premium.webp",
   },
 ];
 
@@ -105,7 +105,7 @@ export default function Home() {
 
         <div className="hero-image-wrapper">
           <Image
-            src="/hero-mockup-transparent.png"
+            src="/hero-mockup-transparent.webp"
             alt="Campus & Code Merch"
             width={900}
             height={700}
@@ -187,7 +187,7 @@ export default function Home() {
       <section className="promo-banners-section">
         <Link href="/catalog?category=universities" className="promo-banner">
           <Image
-            src="/banner-one.png"
+            src="/banner-one.webp"
             alt="Коллекции университетов"
             width={800}
             height={380}
@@ -207,7 +207,7 @@ export default function Home() {
         </Link>
         <Link href="/catalog?category=teams" className="promo-banner">
           <Image
-            src="/banner-two.png"
+            src="/banner-two.webp"
             alt="IT-коллекции для разработчиков"
             width={800}
             height={380}

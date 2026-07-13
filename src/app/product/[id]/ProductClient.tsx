@@ -537,14 +537,14 @@ export default function ProductClient({ product }: { product: Product }) {
                   {product.category === 'hoodie' ? (
                     <>
                       <Image
-                        src="/size-guide-hoodie-light.png"
+                        src="/size-guide-hoodie-light.webp"
                         alt="Схема замеров худи"
                         width={320}
                         height={320}
                         className="guide-illustration-image guide-illustration-image--light"
                       />
                       <Image
-                        src="/size-guide-hoodie-transparent.png"
+                        src="/size-guide-hoodie-transparent.webp"
                         alt="Схема замеров худи"
                         width={320}
                         height={320}
@@ -554,14 +554,14 @@ export default function ProductClient({ product }: { product: Product }) {
                   ) : (
                     <>
                       <Image
-                        src="/size-guide-tshirt-light.png"
+                        src="/size-guide-tshirt-light.webp"
                         alt="Схема замеров футболки"
                         width={320}
                         height={320}
                         className="guide-illustration-image guide-illustration-image--light"
                       />
                       <Image
-                        src="/size-guide-tshirt-transparent.png"
+                        src="/size-guide-tshirt-transparent.webp"
                         alt="Схема замеров футболки"
                         width={320}
                         height={320}
