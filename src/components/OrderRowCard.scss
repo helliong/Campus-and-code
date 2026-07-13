@@ -1,0 +1,140 @@
+.order-row-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border-soft);
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .order-image-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    background-color: var(--bg-card-soft);
+    border-radius: 8px;
+    overflow: hidden;
+
+    .order-image {
+      object-fit: contain;
+      padding: 0.5rem;
+    }
+  }
+
+  .order-info-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .order-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+
+      .order-number {
+        font-weight: 600;
+        font-size: 1.05rem;
+        color: var(--text-main);
+      }
+
+      .order-date {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .order-status {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-weight: 500;
+
+        &.status-delivered {
+          background-color: rgba(46, 139, 87, 0.15); /* Match theme green later if needed */
+          color: #4ade80; /* A nice green for dark mode, will adapt later */
+          .dark-theme & {
+            color: #4ade80;
+          }
+          [data-theme="light"] &, :root:not(.dark-theme) & {
+            color: #166534;
+            background-color: #dcfce7;
+          }
+        }
+
+        &.status-in-transit {
+          background-color: rgba(59, 130, 246, 0.15);
+          color: #60a5fa;
+          .dark-theme & {
+            color: #60a5fa;
+          }
+          [data-theme="light"] &, :root:not(.dark-theme) & {
+            color: #1d4ed8;
+            background-color: #dbeafe;
+          }
+        }
+
+        &.status-cancelled {
+          background-color: rgba(156, 163, 175, 0.15);
+          color: #9ca3af;
+          .dark-theme & {
+            color: #9ca3af;
+          }
+          [data-theme="light"] &, :root:not(.dark-theme) & {
+            color: #4b5563;
+            background-color: #f3f4f6;
+          }
+        }
+      }
+    }
+
+    .order-summary {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+  }
+
+  .order-actions {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+
+    @media (max-width: 600px) {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .order-total-price {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    .details-btn {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: background-color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+
+      &:hover {
+        background-color: var(--bg-card-soft);
+        border-color: var(--text-secondary);
+      }
+    }
+  }
+}

@@ -4,6 +4,7 @@
   margin: 0 auto;
   padding: 2rem;
   color: var(--text-main);
+  overflow-x: hidden;
 
   .sizes-header {
     margin-bottom: 2rem;
@@ -54,6 +55,7 @@
   .size-tabs {
     display: grid;
     grid-template-columns: repeat(6, minmax(120px, 1fr));
+    max-width: 100%;
     border: 1px solid var(--border);
     border-radius: 8px;
     overflow-x: auto;
@@ -100,6 +102,7 @@
   .sizes-main {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+    max-width: 100%;
     gap: 2rem;
     align-items: start;
     margin-bottom: 2rem;
@@ -133,7 +136,9 @@
 
   .sizes-table-wrap {
     border-radius: 8px;
+    max-width: 100%;
     overflow-x: auto;
+    scrollbar-width: thin;
   }
 
   .sizes-table {
@@ -764,9 +769,12 @@
 
     .sizes-main {
       gap: 1.25rem;
+      min-width: 0;
     }
 
     .sizes-table-section {
+      min-width: 0;
+
       h2 {
         font-size: 1.4rem;
       }
@@ -779,15 +787,17 @@
     .size-visual {
       padding: 0.75rem;
       min-height: 0;
+      min-width: 0;
       box-shadow: none;
 
       img {
+        max-width: 100%;
         max-height: 420px;
       }
     }
 
     .sizes-table-wrap {
-      overflow: hidden;
+      overflow-x: auto;
       border-radius: 8px;
       box-shadow: none;
     }
@@ -801,7 +811,7 @@
         padding: 0.75rem 0.55rem;
         font-size: 0.78rem;
         line-height: 1.25;
-        word-break: normal;
+        overflow-wrap: anywhere;
       }
 
       th {

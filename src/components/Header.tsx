@@ -83,28 +83,15 @@ export default function Header() {
         </form>
         <nav className="user-navigation" aria-label="Пользовательское меню">
           {session ? (
-            <div
-              className="user-nav-link profile-link"
-              style={{ display: "flex", alignItems: "center", gap: "10px" }}
+            <Link 
+              href="/profile"
+              className={`user-nav-link profile-link ${pathname?.startsWith('/profile') ? 'active' : ''}`}
             >
-              <span>
-                {session.user?.name || session.user?.email?.split("@")[0]}
-              </span>
-              <button
-                onClick={() => signOut()}
-                style={{
-                  background: "none",
-                  border: "1px solid currentColor",
-                  padding: "2px 8px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  color: "inherit",
-                  fontSize: "0.8rem",
-                }}
-              >
-                Выйти
-              </button>
-            </div>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0-7a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 9c-4.14 0-7.5 2.58-7.5 5.75 0 .69.56 1.25 1.25 1.25h12.5c.69 0 1.25-.56 1.25-1.25C19.5 16.58 16.14 14 12 14Zm-5.38 5c.52-1.69 2.74-3 5.38-3s4.86 1.31 5.38 3H6.62Z" />
+              </svg>
+              <span>Профиль</span>
+            </Link>
           ) : (
             <>
               <button 

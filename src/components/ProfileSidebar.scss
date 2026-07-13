@@ -1,0 +1,112 @@
+.profile-sidebar {
+  background-color: var(--bg-card);
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 1rem 0;
+  height: fit-content;
+  align-self: start;
+
+  @media (max-width: 900px) {
+    padding: 0;
+  }
+
+  .profile-nav {
+    display: flex;
+    flex-direction: column;
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      @media (max-width: 900px) {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      }
+    }
+
+    li {
+      margin-bottom: 0.2rem;
+      
+      @media (max-width: 900px) {
+        margin-bottom: 0;
+      }
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem 1.5rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: background-color 0.2s, color 0.2s;
+
+      @media (max-width: 900px) {
+        padding: 1rem;
+      }
+
+      .item-icon {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+
+      &:hover {
+        background-color: var(--bg-card-soft);
+        color: var(--text-main);
+      }
+
+      &.active {
+        background-color: var(--primary);
+        color: var(--primary-text);
+      }
+    }
+
+    .sidebar-footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-soft);
+
+      @media (max-width: 900px) {
+        border-top: none;
+        padding-top: 0;
+        margin-top: 0;
+        margin-left: auto; /* Push logout to the right on mobile */
+      }
+    }
+
+    .logout-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem 1.5rem;
+      color: var(--text-secondary);
+      background: none;
+      border: none;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      transition: background-color 0.2s, color 0.2s;
+
+      .item-icon {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+
+      &:hover {
+        color: var(--text-main);
+        background-color: var(--bg-card-soft);
+      }
+    }
+  }
+}
