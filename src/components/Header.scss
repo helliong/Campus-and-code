@@ -48,7 +48,7 @@
     }
 
     &.active::after {
-      content: '';
+      content: "";
       position: absolute;
       bottom: 0;
       left: 0;
@@ -170,7 +170,6 @@
     font-weight: 700;
     line-height: 1;
   }
-
 }
 
 @media (max-width: 1100px) {
@@ -255,7 +254,9 @@
       border: 0;
       border-radius: 0;
       color: var(--text-secondary);
-      transition: background-color 0.2s, color 0.2s;
+      transition:
+        background-color 0.2s,
+        color 0.2s;
 
       .nav-icon {
         display: block;
@@ -265,7 +266,9 @@
         border-radius: 10px;
         box-sizing: content-box;
         padding: 0.65rem 0.8rem;
-        transition: background-color 0.2s, color 0.2s;
+        transition:
+          background-color 0.2s,
+          color 0.2s;
       }
 
       .nav-label {
@@ -325,7 +328,9 @@
       justify-content: center;
       gap: 0;
       color: var(--text-secondary);
-      transition: background-color 0.2s, color 0.2s;
+      transition:
+        background-color 0.2s,
+        color 0.2s;
 
       > span:not(.cart-icon-wrapper) {
         display: none;
@@ -349,7 +354,10 @@
         border-radius: 10px;
         box-sizing: content-box;
         padding: 0.65rem 0.8rem;
-        transition: background-color 0.2s, color 0.2s, fill 0.2s;
+        transition:
+          background-color 0.2s,
+          color 0.2s,
+          fill 0.2s;
       }
 
       &:hover svg,
