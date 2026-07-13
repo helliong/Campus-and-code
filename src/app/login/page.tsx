@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -18,6 +18,61 @@ import { SiVk, SiGithub } from "react-icons/si";
 import { PiTicket } from "react-icons/pi";
 import "./page.scss";
 
+const LOGIN_LOCKOUT_STORAGE_KEY = "login-lockout-until";
+const IS_RATE_LIMIT_CLEAR_ENABLED = process.env.NODE_ENV !== "production";
+
+function getLoginErrorMessage(error?: string | null) {
+  if (!error) return "";
+
+  const decodedError = decodeURIComponent(error);
+
+  if (decodedError.includes("Слишком много") || decodedError.includes("Подождите")) {
+    return decodedError;
+  }
+
+  return "Неверный email или пароль";
+}
+
+function getLockoutErrorMessage(lockoutSeconds: number) {
+  return `Слишком много неудачных попыток входа. Подождите ${formatLockoutTime(lockoutSeconds)}`;
+}
+
+function getRetryAfterSeconds(message: string) {
+  const minutesMatch = message.match(/(\d+)\s*мин/);
+  const secondsMatch = message.match(/(\d+)\s*сек/);
+  const minutes = minutesMatch ? Number(minutesMatch[1]) : 0;
+  const seconds = secondsMatch ? Number(secondsMatch[1]) : 0;
+
+  return minutes * 60 + seconds;
+}
+
+function formatLockoutTime(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (minutes <= 0) {
+    return `${seconds} сек.`;
+  }
+
+  if (seconds === 0) {
+    return `${minutes} мин.`;
+  }
+
+  return `${minutes} мин. ${seconds} сек.`;
+}
+
+function getLockoutSecondsFromStorage() {
+  if (typeof window === "undefined") return 0;
+
+  const storedLockoutUntil = window.sessionStorage.getItem(LOGIN_LOCKOUT_STORAGE_KEY);
+  if (!storedLockoutUntil) return 0;
+
+  const lockoutUntil = Number(storedLockoutUntil);
+  if (!Number.isFinite(lockoutUntil)) return 0;
+
+  return Math.max(Math.ceil((lockoutUntil - Date.now()) / 1000), 0);
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -25,9 +80,41 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
+  const isLoginBlocked = lockoutSeconds > 0;
+  const displayedError = isLoginBlocked ? getLockoutErrorMessage(lockoutSeconds) : error;
+
+  useEffect(() => {
+    const storedLockoutSeconds = getLockoutSecondsFromStorage();
+    if (storedLockoutSeconds <= 0) {
+      window.sessionStorage.removeItem(LOGIN_LOCKOUT_STORAGE_KEY);
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      setLockoutSeconds(storedLockoutSeconds);
+    }, 0);
+
+    return () => window.clearTimeout(timerId);
+  }, []);
+
+  useEffect(() => {
+    if (lockoutSeconds <= 0) {
+      window.sessionStorage.removeItem(LOGIN_LOCKOUT_STORAGE_KEY);
+      return;
+    }
+
+    const timerId = window.setInterval(() => {
+      setLockoutSeconds((currentSeconds) => Math.max(currentSeconds - 1, 0));
+    }, 1000);
+
+    return () => window.clearInterval(timerId);
+  }, [lockoutSeconds]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoginBlocked) return;
+
     setError("");
 
     const res = await signIn("credentials", {
@@ -37,11 +124,36 @@ export default function LoginPage() {
     });
 
     if (res?.error) {
-      setError("Неверный email или пароль");
+      const loginError = getLoginErrorMessage(res.error);
+      const retryAfterSeconds = getRetryAfterSeconds(loginError);
+
+      if (retryAfterSeconds > 0) {
+        window.sessionStorage.setItem(LOGIN_LOCKOUT_STORAGE_KEY, String(Date.now() + retryAfterSeconds * 1000));
+        setLockoutSeconds(retryAfterSeconds);
+        setError("");
+      } else {
+        setError(loginError);
+      }
     } else {
+      window.sessionStorage.removeItem(LOGIN_LOCKOUT_STORAGE_KEY);
+      setLockoutSeconds(0);
       router.push("/");
       router.refresh();
     }
+  };
+
+  const handleClearLoginError = async () => {
+    await fetch("/api/auth/rate-limit/clear", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    }).catch(() => null);
+
+    window.sessionStorage.removeItem(LOGIN_LOCKOUT_STORAGE_KEY);
+    setLockoutSeconds(0);
+    setError("");
   };
 
   return (
@@ -113,7 +225,16 @@ export default function LoginPage() {
           <h3>Войдите в аккаунт</h3>
 
           <form className="login-form" onSubmit={handleSubmit}>
-            {error && <div className="error-message">{error}</div>}
+            {displayedError && (
+              <div className="error-message">
+                <span>{displayedError}</span>
+                {isLoginBlocked && IS_RATE_LIMIT_CLEAR_ENABLED && (
+                  <button type="button" onClick={handleClearLoginError}>
+                    Очистить
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="form-group">
               <label htmlFor="email">Email</label>
@@ -166,7 +287,7 @@ export default function LoginPage() {
               <label htmlFor="remember">Запомнить меня</label>
             </div>
 
-            <button type="submit" className="submit-btn">
+            <button type="submit" className="submit-btn" disabled={isLoginBlocked}>
               Войти
             </button>
           </form>

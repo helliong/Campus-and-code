@@ -1,7 +1,27 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
+import {
+  checkRateLimit,
+  clearRateLimit,
+  formatRetryAfter,
+  getClientIpFromHeaders,
+  incrementRateLimit,
+} from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
+
+const LOGIN_EMAIL_RATE_LIMIT = {
+  limit: 5,
+  windowMs: 5 * 60 * 1000,
+};
+
+const LOGIN_IP_RATE_LIMIT = {
+  limit: 20,
+  windowMs: 5 * 60 * 1000,
+};
+
+const LOGIN_RATE_LIMIT_MESSAGE = "Слишком много неудачных попыток входа.";
+const LOGIN_INVALID_MESSAGE = "Неверный email или пароль";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -9,43 +29,61 @@ export const authOptions: NextAuthOptions = {
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Необходим email и пароль");
         }
 
+        const normalizedEmail = credentials.email.trim().toLowerCase();
+        const emailRateLimitKey = `login-email:${normalizedEmail}`;
+        const ipRateLimitKey = `login-ip:${getClientIpFromHeaders(request.headers)}`;
+        const emailRateLimit = checkRateLimit(emailRateLimitKey, LOGIN_EMAIL_RATE_LIMIT);
+        const ipRateLimit = checkRateLimit(ipRateLimitKey, LOGIN_IP_RATE_LIMIT);
+
+        const blockedRateLimit = !emailRateLimit.allowed ? emailRateLimit : !ipRateLimit.allowed ? ipRateLimit : null;
+
+        if (blockedRateLimit) {
+          throw new Error(`${LOGIN_RATE_LIMIT_MESSAGE} Подождите ${formatRetryAfter(blockedRateLimit.retryAfter)}.`);
+        }
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+          where: { email: normalizedEmail },
         });
 
         if (!user || !user.password) {
-          throw new Error("Пользователь не найден");
+          incrementRateLimit(emailRateLimitKey, LOGIN_EMAIL_RATE_LIMIT);
+          incrementRateLimit(ipRateLimitKey, LOGIN_IP_RATE_LIMIT);
+          throw new Error(LOGIN_INVALID_MESSAGE);
         }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isPasswordValid) {
-          throw new Error("Неверный пароль");
+          incrementRateLimit(emailRateLimitKey, LOGIN_EMAIL_RATE_LIMIT);
+          incrementRateLimit(ipRateLimitKey, LOGIN_IP_RATE_LIMIT);
+          throw new Error(LOGIN_INVALID_MESSAGE);
         }
+
+        clearRateLimit(emailRateLimitKey);
 
         return {
           id: user.id,
           email: user.email,
           name: user.name,
         };
-      }
-    })
+      },
+    }),
   ],
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
   },
   pages: {
     signIn: "/login",
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.name = user.name;
@@ -69,7 +107,7 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email;
       }
       return session;
-    }
+    },
   },
   secret: process.env.NEXTAUTH_SECRET || "default_secret_for_dev_mode_only",
 };

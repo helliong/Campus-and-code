@@ -226,12 +226,38 @@
 
         .error-message {
           padding: 0.75rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
           background: rgba(239, 68, 68, 0.1);
           border: 1px solid rgba(239, 68, 68, 0.3);
           border-radius: 6px;
           color: #ef4444;
           font-size: 0.9rem;
-          text-align: center;
+
+          span {
+            flex: 1;
+            text-align: center;
+          }
+
+          button {
+            padding: 0.35rem 0.6rem;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            border-radius: 5px;
+            color: #ef4444;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition:
+              background-color 0.2s,
+              border-color 0.2s;
+
+            &:hover {
+              border-color: rgba(239, 68, 68, 0.55);
+              background: rgba(239, 68, 68, 0.08);
+            }
+          }
         }
 
         .error-text {
