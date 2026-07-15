@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -45,21 +45,17 @@ const categoryNames: Record<SizeCategoryId, string> = {
 };
 
 const hoodieSizes = [
-  { size: "XS", chest: "49-51", length: "64-66", sleeve: "59-61" },
   { size: "S", chest: "52-54", length: "66-68", sleeve: "61-63" },
   { size: "M", chest: "55-57", length: "68-70", sleeve: "63-65" },
   { size: "L", chest: "58-60", length: "70-72", sleeve: "65-67" },
   { size: "XL", chest: "61-63", length: "72-74", sleeve: "67-69" },
-  { size: "XXL", chest: "64-66", length: "74-76", sleeve: "69-71" },
 ];
 
 const tshirtSizes = [
-  { size: "XS", chest: "47-49", length: "64-66", sleeve: "19-20" },
   { size: "S", chest: "50-52", length: "66-68", sleeve: "20-21" },
   { size: "M", chest: "53-55", length: "68-70", sleeve: "21-22" },
   { size: "L", chest: "56-58", length: "70-72", sleeve: "22-23" },
   { size: "XL", chest: "59-61", length: "72-74", sleeve: "23-24" },
-  { size: "XXL", chest: "62-64", length: "74-76", sleeve: "24-25" },
 ];
 
 const measureSteps = [

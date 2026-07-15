@@ -57,7 +57,8 @@ export async function POST(req: Request) {
       }
 
       const finalCartItems = await prisma.cartItem.findMany({
-        where: { userId: session.user.id }
+        where: { userId: session.user.id },
+        include: { product: true }
       });
 
       return NextResponse.json({ cartItems: finalCartItems }, { status: 200 });

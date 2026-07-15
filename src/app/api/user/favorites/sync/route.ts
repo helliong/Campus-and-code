@@ -28,7 +28,12 @@ export async function POST(req: Request) {
           skipDuplicates: true
         });
       }
-      return NextResponse.json({ favorites: combined }, { status: 200 });
+
+      const populatedFavorites = await prisma.product.findMany({
+        where: { id: { in: combined } }
+      });
+
+      return NextResponse.json({ favorites: populatedFavorites }, { status: 200 });
     }
 
     if (action === 'save' && Array.isArray(localFavorites)) {

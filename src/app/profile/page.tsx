@@ -2,62 +2,22 @@
 
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import OrderRowCard, { type OrderRowProps } from "@/components/OrderRowCard";
 import ProductCard from "@/components/ProductCard";
 import { Product } from "@/types";
+import { getPublicProducts } from "@/actions/products";
+import { useCart } from "@/context/CartContext";
+import { useFavorites } from "@/context/FavoritesContext";
 import "./page.scss";
 
 // Mock data
 const recentOrders: OrderRowProps[] = [];
 
-const mockRecommendations: Product[] = [
-  {
-    id: "rec1",
-    name: "Худи Keep Calm and Code",
-    description: "Мягкое худи для долгих сессий кодинга",
-    category: "hoodie",
-    price: 3690,
-    imageUrl: "/category-hoodie-premium.webp",
-    availableSizes: ["S", "M", "L", "XL"],
-    availableColors: ["black"],
-  },
-  {
-    id: "rec2",
-    name: "Кружка Code Mode",
-    description: "Керамическая кружка",
-    category: "mug",
-    price: 690,
-    imageUrl: "/category-mug-premium.webp",
-  },
-  {
-    id: "rec3",
-    name: "Стикерпак Dev",
-    description: "Набор виниловых наклеек",
-    category: "sticker",
-    price: 390,
-    imageUrl: "/category-stickers-premium.webp",
-  },
-  {
-    id: "rec4",
-    name: "Кепка Developer",
-    description: "Стильная черная кепка",
-    category: "accessories",
-    price: 990,
-    imageUrl: "/category-accessories-premium.webp",
-  },
-  {
-    id: "rec5",
-    name: "Блокнот Code Plan",
-    description: "Ежедневник для программистов",
-    category: "other",
-    price: 590,
-    imageUrl: "/category-university-premium.webp", // Or generic placeholder
-  },
-];
-
 export default function ProfilePage() {
   const { status, update } = useSession();
+  const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -68,6 +28,16 @@ export default function ProfilePage() {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editEmail, setEditEmail] = useState("");
+
+  const { items } = useCart();
+  const { isFavorite } = useFavorites();
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getPublicProducts().then(data => {
+      setRecommendations(data.filter(p => !items.some(i => i.product.id === p.id) && !isFavorite(p.id)).slice(0, 5));
+    });
+  }, [items, isFavorite]);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -89,9 +59,9 @@ export default function ProfilePage() {
     if (status === "authenticated") {
       fetchProfile();
     } else if (status === "unauthenticated") {
-      setIsProfileLoaded(true);
+      router.push("/login");
     }
-  }, [status]);
+  }, [status, router]);
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let input = e.target.value.replace(/\D/g, "");
@@ -257,6 +227,15 @@ export default function ProfilePage() {
                     </svg>
                     {isProfileLoading ? "Загрузка..." : displayRole}
                   </span>
+                  {(profileData?.role === "SUPERADMIN" || profileData?.role === "UNIVERSITY_ADMIN") && (
+                    <Link href="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#000', color: '#fff', padding: '0.5rem 1rem', borderRadius: '8px', textDecoration: 'none', marginTop: '10px', fontSize: '14px', fontWeight: '500', width: 'fit-content' }}>
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                      </svg>
+                      Панель администратора
+                    </Link>
+                  )}
                 </>
               )}
             </div>
@@ -389,7 +368,7 @@ export default function ProfilePage() {
           )}
           
           <div className="recommendations-grid" ref={scrollRef} onScroll={checkScroll}>
-            {mockRecommendations.map((product) => (
+            {recommendations.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

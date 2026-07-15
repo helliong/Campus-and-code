@@ -72,6 +72,8 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
+          universityId: user.universityId,
         };
       },
     }),
@@ -88,6 +90,8 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
+        token.role = user.role;
+        token.universityId = user.universityId;
       }
 
       if (trigger === "update") {
@@ -95,6 +99,8 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           token.name = dbUser.name;
           token.email = dbUser.email;
+          token.role = dbUser.role;
+          token.universityId = dbUser.universityId;
         }
       }
 
@@ -105,6 +111,8 @@ export const authOptions: NextAuthOptions = {
         session.user.id = (token.id || token.sub) as string;
         session.user.name = token.name;
         session.user.email = token.email;
+        session.user.role = token.role as string;
+        session.user.universityId = token.universityId as string | null;
       }
       return session;
     },

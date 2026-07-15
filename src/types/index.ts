@@ -9,6 +9,8 @@ export interface Product {
   availableColors?: string[]; // e.g. ['black', 'white', 'gray']
   materials?: string[]; // e.g. ['Хлопок', 'Полиэстер']
   inStock?: boolean;
+  universityId?: string | null;
+  oldPrice?: number | null;
 }
 
 export interface CartItem {

@@ -1,75 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { mockProducts } from "../../../lib/mockData";
 import { generateSlug } from "../../../lib/utils";
-function RelatedProductCard({ product, customStyle, customContent }: { product: Product, customStyle: any, customContent: React.ReactNode }) {
-  const { items, addToCart, updateQuantity } = useCart();
-  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
-  
-  const favorite = isFavorite(product.id);
-  const cartItem = items.find(item => item.product.id === product.id && !item.selectedSize && !item.selectedColor);
-  // Note: For simple products like mugs/stickers we might not have size/color. 
-  // If we want to safely match, let's just match by ID for these related products.
-  const matchedCartItem = items.find(item => item.product.id === product.id);
-  const quantity = matchedCartItem ? matchedCartItem.quantity : 0;
-  
-  const handleFavoriteToggle = () => {
-    if (favorite) removeFavorite(product.id);
-    else addFavorite(product);
-  };
-  
-  const handleAddToCart = () => {
-    addToCart(product, 1);
-  };
-  
-  const handleIncrement = () => {
-    if (matchedCartItem) updateQuantity(product.id, quantity + 1, matchedCartItem.selectedSize, matchedCartItem.selectedColor);
-  };
-  
-  const handleDecrement = () => {
-    if (matchedCartItem) updateQuantity(product.id, quantity - 1, matchedCartItem.selectedSize, matchedCartItem.selectedColor);
-  };
-
-  const categoryNames: Record<string, string> = {
-    hoodie: "Худи", tshirt: "Футболки", sticker: "Стикеры", accessories: "Аксессуары", mug: "Кружки", other: "Разное"
-  };
-
-  const productUrl = `/product/${product.id}-${generateSlug(product.name)}`;
-
-  return (
-    <div className="product-card">
-      <button className={`fav-btn ${favorite ? 'active' : ''}`} onClick={handleFavoriteToggle}>
-        <FiHeart style={favorite ? { fill: '#ff4757', color: '#ff4757' } : {}} />
-      </button>
-      <Link href={productUrl} className="card-img" style={{...customStyle, display: 'block', textDecoration: 'none'}}>
-        {customContent}
-      </Link>
-      <div className="card-info">
-        <span className="card-cat">{categoryNames[product.category] || "Разное"}</span>
-        <Link href={productUrl} style={{ textDecoration: 'none', color: 'inherit' }}>
-          <span className="card-title">{product.name}</span>
-        </Link>
-        <div className="card-bottom">
-          <span className="card-price">{product.price.toLocaleString("ru-RU")} ₽</span>
-          {quantity > 0 ? (
-            <div className="quantity-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '6px', overflow: 'hidden', height: '32px', width: '80px' }}>
-              <button onClick={handleDecrement} style={{ width: '28px', height: '100%', background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>-</button>
-              <span style={{ flex: 1, textAlign: 'center', color: 'var(--text-main)', fontSize: '0.9rem' }}>{quantity}</span>
-              <button onClick={handleIncrement} style={{ width: '28px', height: '100%', background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-            </div>
-          ) : (
-            <button className="cart-btn" onClick={handleAddToCart} style={{ height: '32px', width: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
-              <FiShoppingCart />
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+import ProductCard from "../../../components/ProductCard";
+import { getPublicProducts } from "../../../actions/products";
 import {
   FiChevronRight,
   FiChevronLeft,
@@ -121,6 +57,14 @@ export default function ProductClient({ product }: { product: Product }) {
     "desc" | "specs" | "delivery" | "reviews"
   >("desc");
   const [activeImageIdx, setActiveImageIdx] = useState(0);
+
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getPublicProducts().then(data => {
+      setRecommendations(data.filter(p => p.id !== product.id && !items.some(i => i.product.id === p.id) && !isFavorite(p.id)).slice(0, 4));
+    });
+  }, [items, isFavorite, product.id]);
 
   const cartItem = items.find(
     (item) =>
@@ -439,68 +383,7 @@ export default function ProductClient({ product }: { product: Product }) {
           </div>
         </div>
 
-        <div className="related-products">
-          <h2>С этим товаром покупают</h2>
-          <div className="products-grid">
-            {[
-              {
-                id: '11',
-                customStyle: { backgroundImage: "var(--product-image-gradient)" },
-                customContent: (
-                  <div className="placeholder" style={{ color: "var(--text-main)", fontSize: "1rem", fontFamily: "monospace" }}>
-                    {"{"} code {"}"}<br />mode
-                  </div>
-                )
-              },
-              {
-                id: '6',
-                customStyle: { backgroundImage: "radial-gradient(circle at center, #dcd1c6, #c5b8ab)" },
-                customContent: (
-                  <div className="placeholder" style={{ color: "#000", fontSize: "1.2rem", fontWeight: "bold", textAlign: "center" }}>
-                    CODE<br />MODE<br /><span style={{ fontSize: "0.8rem" }}>&lt;/&gt;</span>
-                  </div>
-                )
-              },
-              {
-                id: '4',
-                customStyle: { backgroundImage: "var(--product-image-gradient)" },
-                customContent: (
-                  <div className="placeholder" style={{ color: "var(--text-main)", fontSize: "1rem" }}>Developer</div>
-                )
-              },
-              {
-                id: '12',
-                customStyle: { backgroundImage: "radial-gradient(circle at center, #222, #000)" },
-                customContent: (
-                  <div className="placeholder" style={{ color: "#d4af37", fontSize: "1rem", textAlign: "center" }}>
-                    CODE<br />PLAN<br />BUILD<br />REPEAT
-                  </div>
-                )
-              },
-              {
-                id: '10',
-                customStyle: { backgroundImage: "var(--product-image-gradient)" },
-                customContent: (
-                  <div className="placeholder" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
-                    <span style={{ background: "var(--text-main)", color: "var(--bg-card)", padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: "0.8rem" }}>git commit</span>
-                    <span style={{ background: "var(--bg-card)", color: "var(--text-main)", padding: "0.2rem 0.5rem", borderRadius: "4px", border: "1px solid var(--border-color)", fontSize: "0.8rem", fontFamily: "monospace" }}>{"{"} code {"}"}<br />mode</span>
-                  </div>
-                )
-              }
-            ].map((data) => {
-              const p = mockProducts.find(p => p.id === data.id);
-              if (!p) return null;
-              return (
-                <RelatedProductCard 
-                  key={p.id}
-                  product={p} 
-                  customStyle={data.customStyle} 
-                  customContent={data.customContent} 
-                />
-              );
-            })}
-          </div>
-        </div>
+
 
         {isSizeGuideOpen && (
           <div className="size-guide-overlay" onClick={() => setIsSizeGuideOpen(false)}>
@@ -527,7 +410,6 @@ export default function ProductClient({ product }: { product: Product }) {
                     <tr><td>M</td><td>55–57</td><td>68–70</td><td>63–65</td></tr>
                     <tr><td>L</td><td>58–60</td><td>70–72</td><td>65–67</td></tr>
                     <tr><td>XL</td><td>61–63</td><td>72–74</td><td>67–69</td></tr>
-                    <tr><td>XXL</td><td>64–66</td><td>74–76</td><td>69–71</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -604,6 +486,17 @@ export default function ProductClient({ product }: { product: Product }) {
               </div>
             </div>
           </div>
+        )}
+
+        {recommendations.length > 0 && (
+          <section className="related-products" style={{ marginTop: '4rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>С этим товаром покупают</h2>
+            <div className="related-products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+              {recommendations.map(prod => (
+                <ProductCard key={prod.id} product={prod} />
+              ))}
+            </div>
+          </section>
         )}
       </main>
     </div>

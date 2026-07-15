@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { FiCheck, FiRefreshCw } from "react-icons/fi";
 import ProductCard from "@/components/ProductCard";
 import { useFavorites } from "@/context/FavoritesContext";
@@ -20,7 +20,7 @@ const categoryLabels: Record<Product["category"], string> = {
   other: "Разное",
 };
 
-const sizeOptions = ["XS", "S", "M", "L", "XL", "XXL"];
+const sizeOptions = ["S", "M", "L", "XL"];
 const colorOptions = [
   { value: "white", label: "Белый", color: "#ffffff" },
   { value: "beige", label: "Бежевый", color: "#e8e1d7" },
@@ -40,7 +40,7 @@ type FilterState = {
 
 const defaultFilters: FilterState = {
   category: allCategory,
-  priceRange: [390, 3690],
+  priceRange: [0, 5000],
   colors: [],
   sizes: [],
 };
@@ -60,6 +60,15 @@ export default function FavoritesPage() {
   const [sort, setSort] = useState<SortValue>("added");
   const [viewMode, setViewMode] = useState<"grid" | "compact">("grid");
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+  const maxPriceLimit = useMemo(() => favorites.length > 0 ? Math.max(...favorites.map(f => f.price)) : 5000, [favorites]);
+
+  useEffect(() => {
+    if (favorites.length > 0) {
+      setDraftFilters(prev => ({ ...prev, priceRange: [prev.priceRange[0], maxPriceLimit] }));
+      setAppliedFilters(prev => ({ ...prev, priceRange: [prev.priceRange[0], maxPriceLimit] }));
+    }
+  }, [maxPriceLimit, favorites.length]);
 
   const categoryCounts = useMemo(() => getCategoryCounts(favorites), [favorites]);
   const categories = useMemo(
@@ -121,8 +130,8 @@ export default function FavoritesPage() {
   };
 
   const clearFilters = () => {
-    setDraftFilters(defaultFilters);
-    setAppliedFilters(defaultFilters);
+    setDraftFilters({ ...defaultFilters, priceRange: [0, maxPriceLimit] });
+    setAppliedFilters({ ...defaultFilters, priceRange: [0, maxPriceLimit] });
     setSort("added");
   };
 
@@ -221,7 +230,7 @@ export default function FavoritesPage() {
                   type="range"
                   className="range-input"
                   min={0}
-                  max={5000}
+                  max={maxPriceLimit}
                   value={draftFilters.priceRange[0]}
                   onChange={(event) => {
                     const value = Math.min(Number(event.target.value), draftFilters.priceRange[1] - 100);
@@ -232,7 +241,7 @@ export default function FavoritesPage() {
                   type="range"
                   className="range-input"
                   min={0}
-                  max={5000}
+                  max={maxPriceLimit}
                   value={draftFilters.priceRange[1]}
                   onChange={(event) => {
                     const value = Math.max(Number(event.target.value), draftFilters.priceRange[0] + 100);
@@ -243,8 +252,8 @@ export default function FavoritesPage() {
                   <div
                     className="slider-range"
                     style={{
-                      left: `${(draftFilters.priceRange[0] / 5000) * 100}%`,
-                      right: `${100 - (draftFilters.priceRange[1] / 5000) * 100}%`,
+                      left: `${(draftFilters.priceRange[0] / maxPriceLimit) * 100}%`,
+                      right: `${100 - (draftFilters.priceRange[1] / maxPriceLimit) * 100}%`,
                     }}
                   />
                 </div>

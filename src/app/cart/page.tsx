@@ -9,6 +9,7 @@ import { mockProducts } from "@/lib/mockData";
 import { generateSlug } from "@/lib/utils";
 import ProductCard from "@/components/ProductCard";
 import { Product } from "@/types";
+import { getPublicProducts } from "@/actions/products";
 import "./page.scss";
 
 const colorNames: Record<string, string> = {
@@ -44,8 +45,14 @@ export default function CartPage() {
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
   const deliveryPrice = cartTotal >= 3000 || cartTotal === 0 ? 0 : 300;
   const totalToPay = cartTotal + deliveryPrice;
-  const recommendations = mockProducts
-    .filter((product) => !items.some((item) => item.product.id === product.id))
+  const [publicProducts, setPublicProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getPublicProducts().then(data => setPublicProducts(data));
+  }, []);
+
+  const recommendations = publicProducts
+    .filter((product) => !items.some((item) => item.product.id === product.id) && !isFavorite(product.id))
     .slice(0, 5);
   const shouldShowInlineRecommendations = totalItems < 5;
   const sidebarRecommendations = shouldShowInlineRecommendations ? [] : recommendations.slice(0, 2);

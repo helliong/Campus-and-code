@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { CartItem, Product } from "@/types";
 
 type CartSyncItem = {
@@ -53,8 +54,10 @@ function buildCartState(items: CartItem[]) {
   };
 }
 
-export const useCartStore = create<CartState>((set, get) => ({
-  items: [],
+export const useCartStore = create<CartState>()(
+  persist(
+    (set, get) => ({
+      items: [],
   cartTotal: 0,
   isDbSyncEnabled: false,
 
@@ -109,7 +112,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     set(buildCartState([]));
     if (get().isDbSyncEnabled) syncCartToDb([]);
   },
-}));
+}), { name: "cart-storage" }));
 
 export function getSerializedCartItems(items: CartItem[]) {
   return serializeCart(items);

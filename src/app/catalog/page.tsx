@@ -6,18 +6,18 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { FiChevronRight, FiGrid, FiList, FiChevronDown, FiCheck, FiRefreshCw } from 'react-icons/fi';
 import { LuShirt, LuBook, LuCoffee, LuShoppingBag, LuTerminal } from 'react-icons/lu';
 import { PiHoodie, PiBaseballCap, PiSticker } from 'react-icons/pi';
-import { mockProducts } from '../../lib/mockData';
+import { getPublicProducts } from '../../actions/products';
 import ProductCard from '../../components/ProductCard';
 import './page.scss';
 
-const topCategories = [
-  { id: 'all', name: 'Все товары', count: 12, icon: FiGrid },
-  { id: 'hoodie', name: 'Худи', count: 2, icon: PiHoodie },
-  { id: 'tshirt', name: 'Футболки', count: 2, icon: LuShirt },
-  { id: 'sticker', name: 'Стикеры', count: 2, icon: PiSticker },
-  { id: 'accessories', name: 'Аксессуары', count: 1, icon: PiBaseballCap }, 
-  { id: 'mug', name: 'Кружки', count: 2, icon: LuCoffee },
-  { id: 'other', name: 'Разное', count: 3, icon: LuShoppingBag },
+const baseTopCategories = [
+  { id: 'all', name: 'Все товары', icon: FiGrid },
+  { id: 'hoodie', name: 'Худи', icon: PiHoodie },
+  { id: 'tshirt', name: 'Футболки', icon: LuShirt },
+  { id: 'sticker', name: 'Стикеры', icon: PiSticker },
+  { id: 'accessories', name: 'Аксессуары', icon: PiBaseballCap }, 
+  { id: 'mug', name: 'Кружки', icon: LuCoffee },
+  { id: 'other', name: 'Разное', icon: LuShoppingBag },
 ];
 
 const filterColors = [
@@ -29,7 +29,7 @@ const filterColors = [
   { id: 'black', hex: '#111111' },
 ];
 
-const filterSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const filterSizes = ['S', 'M', 'L', 'XL'];
 const filterMaterials = ['Хлопок', 'Футер', 'Полиэстер', 'Керамика', 'Металл', 'Бумага', 'Холст'];
 
 type FilterState = {
@@ -43,7 +43,7 @@ type FilterState = {
 
 const defaultFilters: FilterState = {
   category: 'all',
-  priceRange: [390, 3690],
+  priceRange: [0, 5000],
   colors: [],
   sizes: [],
   materials: [],
@@ -69,6 +69,21 @@ function CatalogContent() {
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({ ...defaultFilters, category: initialCategory });
 
   // Update URL when applied category changes
+  const [products, setProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [maxPriceLimit, setMaxPriceLimit] = useState(5000);
+
+  useEffect(() => {
+    getPublicProducts().then(data => {
+      setProducts(data);
+      const newMax = data.length > 0 ? Math.max(...data.map(p => p.price)) : 5000;
+      setMaxPriceLimit(newMax);
+      setDraftFilters(prev => ({ ...prev, priceRange: [prev.priceRange[0], newMax] }));
+      setAppliedFilters(prev => ({ ...prev, priceRange: [prev.priceRange[0], newMax] }));
+      setLoadingProducts(false);
+    });
+  }, []);
+
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     if (appliedFilters.category !== 'all') {
@@ -109,8 +124,8 @@ function CatalogContent() {
   };
 
   const resetFilters = () => {
-    setDraftFilters(defaultFilters);
-    setAppliedFilters(defaultFilters);
+    setDraftFilters({ ...defaultFilters, priceRange: [0, maxPriceLimit] });
+    setAppliedFilters({ ...defaultFilters, priceRange: [0, maxPriceLimit] });
   };
 
   // Instant apply for top category buttons (optional, but good UX)
@@ -149,28 +164,35 @@ function CatalogContent() {
 
   // Filter products
   const filteredProducts = useMemo(() => {
-    return mockProducts.filter(product => {
+    return products.filter((product) => {
       if (appliedFilters.category !== 'all' && product.category !== appliedFilters.category) return false;
       
       if (product.price < appliedFilters.priceRange[0] || product.price > appliedFilters.priceRange[1]) return false;
 
       if (appliedFilters.colors.length > 0) {
-        if (!product.availableColors || !product.availableColors.some(c => appliedFilters.colors.includes(c))) return false;
+        if (!product.availableColors || !product.availableColors.some((c: string) => appliedFilters.colors.includes(c))) return false;
       }
       
       if (appliedFilters.sizes.length > 0) {
-        if (!product.availableSizes || !product.availableSizes.some(s => appliedFilters.sizes.includes(s))) return false;
+        if (!product.availableSizes || !product.availableSizes.some((s: string) => appliedFilters.sizes.includes(s))) return false;
       }
       
       if (appliedFilters.materials.length > 0) {
-        if (!product.materials || !product.materials.some(m => appliedFilters.materials.includes(m))) return false;
+        if (!product.materials || !product.materials.some((m: string) => appliedFilters.materials.includes(m))) return false;
       }
       
       if (appliedFilters.inStock && !product.inStock) return false;
       
       return true;
     });
-  }, [appliedFilters]);
+  }, [appliedFilters, products]);
+
+  const topCategories = useMemo(() => {
+    return baseTopCategories.map(cat => {
+      if (cat.id === 'all') return { ...cat, count: products.length };
+      return { ...cat, count: products.filter(p => p.category === cat.id).length };
+    });
+  }, [products]);
 
   return (
     <main className="catalog-page">
@@ -249,7 +271,7 @@ function CatalogContent() {
                 type="range" 
                 className="range-input" 
                 min={0} 
-                max={5000} 
+                max={maxPriceLimit} 
                 value={draftFilters.priceRange[0]} 
                 onChange={(e) => {
                   const val = Math.min(Number(e.target.value), draftFilters.priceRange[1] - 100);
@@ -260,7 +282,7 @@ function CatalogContent() {
                 type="range" 
                 className="range-input" 
                 min={0} 
-                max={5000} 
+                max={maxPriceLimit} 
                 value={draftFilters.priceRange[1]} 
                 onChange={(e) => {
                   const val = Math.max(Number(e.target.value), draftFilters.priceRange[0] + 100);
@@ -271,8 +293,8 @@ function CatalogContent() {
                 <div 
                   className="slider-range"
                   style={{ 
-                    left: `${(draftFilters.priceRange[0] / 5000) * 100}%`, 
-                    right: `${100 - (draftFilters.priceRange[1] / 5000) * 100}%` 
+                    left: `${(draftFilters.priceRange[0] / maxPriceLimit) * 100}%`, 
+                    right: `${100 - (draftFilters.priceRange[1] / maxPriceLimit) * 100}%` 
                   }}
                 ></div>
               </div>
@@ -391,18 +413,20 @@ function CatalogContent() {
           </div>
 
           <div className="catalog-product-grid">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {loadingProducts ? (
+               <p style={{ padding: '2rem' }}>Загрузка товаров...</p>
+            ) : filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product as any} />
             ))}
           </div>
 
-          {filteredProducts.length === 0 && (
+          {!loadingProducts && filteredProducts.length === 0 && (
             <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
               По вашему запросу ничего не найдено.
             </div>
           )}
 
-          {filteredProducts.length > 0 && (
+          {!loadingProducts && filteredProducts.length > 0 && (
             <div className="catalog-pagination">
               <button className="page-btn prev"><FiChevronRight style={{transform: 'rotate(180deg)'}} /></button>
               <button className="page-btn active">1</button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { Product } from "@/types";
 
 type FavoritesState = {
@@ -24,8 +25,10 @@ function syncFavoritesToDb(favorites: Product[]) {
   }).catch((error) => console.error("Sync error", error));
 }
 
-export const useFavoritesStore = create<FavoritesState>((set, get) => ({
-  favorites: [],
+export const useFavoritesStore = create<FavoritesState>()(
+  persist(
+    (set, get) => ({
+      favorites: [],
   isDbSyncEnabled: false,
 
   setFavorites: (favorites) => {
@@ -54,4 +57,4 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   isFavorite: (productId) => {
     return get().favorites.some((product) => product.id === productId);
   },
-}));
+}), { name: "favorites-storage" }));

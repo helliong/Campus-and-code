@@ -3,14 +3,7 @@
 import { ReactNode, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { Product } from "@/types";
-import { mockProducts } from "@/lib/mockData";
 import { useFavoritesStore } from "@/store/favoritesStore";
-
-function mapFavoriteIds(productIds: string[]): Product[] {
-  return productIds
-    .map((productId) => mockProducts.find((product) => product.id === productId))
-    .filter((product): product is Product => Boolean(product));
-}
 
 function FavoritesSync() {
   const { status } = useSession();
@@ -37,9 +30,9 @@ function FavoritesSync() {
       }),
     })
       .then((response) => response.json())
-      .then((data: { favorites?: string[] }) => {
+      .then((data: { favorites?: Product[] }) => {
         if (data.favorites) {
-          useFavoritesStore.getState().setFavorites(mapFavoriteIds(data.favorites));
+          useFavoritesStore.getState().setFavorites(data.favorites);
         }
         useFavoritesStore.getState().setDbSyncEnabled(true);
       })

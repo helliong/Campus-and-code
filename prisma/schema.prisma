@@ -7,15 +7,71 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  STUDENT
+  UNIVERSITY_ADMIN
+  SUPERADMIN
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   password  String
   name      String?
   phone     String?
-  role      String   @default("student")
+  role      Role     @default(STUDENT)
+  
+  universityId String?
+  university   University? @relation(fields: [universityId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  favorites Favorite[]
+  cartItems CartItem[]
+}
+
+model University {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  shortName String
+  tone      String
+  mark      String
+
+  admins    User[]
+  products  Product[]
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  sku             String?  @unique
+  name            String
+  description     String?
+  price           Int
+  oldPrice        Int?
+  imageUrl        String
+  
+  category        String
+  badge           String?  
+  
+  availableSizes  String[]
+  availableColors String[]
+  materials       String[]
+  tags            String[]
+  
+  stockCount      Int      @default(0)
+  inStock         Boolean  @default(true)
+  
+  views           Int      @default(0)
+  isPublished     Boolean  @default(true)
+  
+  universityId    String?
+  university      University? @relation(fields: [universityId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   favorites Favorite[]
   cartItems CartItem[]
@@ -25,7 +81,9 @@ model Favorite {
   id        String @id @default(cuid())
   userId    String
   productId String
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   
   @@unique([userId, productId])
 }
@@ -37,7 +95,9 @@ model CartItem {
   quantity      Int
   selectedSize  String?
   selectedColor String?
+  
   user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId, selectedSize, selectedColor])
 }

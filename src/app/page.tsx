@@ -1,5 +1,5 @@
 import "./page.scss";
-import { mockProducts } from "../lib/mockData";
+import { getPublicProducts } from "../actions/products";
 import ProductCard from "../components/ProductCard";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,7 +50,19 @@ const categories = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const dbProducts = await getPublicProducts();
+  const displayProducts = dbProducts.slice(0, 10); // show top 10
+
+  const dynamicCategories = categories.map(cat => {
+    let count = 0;
+    if (cat.id === "universities") {
+      count = dbProducts.filter(p => p.universityId).length;
+    } else {
+      count = dbProducts.filter(p => p.category === cat.id).length;
+    }
+    return { ...cat, count };
+  });
   return (
     <main className="home-page">
       <section className="hero-section">
@@ -118,7 +130,7 @@ export default function Home() {
 
       <section className="categories-section" id="collections">
         <div className="categories-grid">
-          {categories.map((cat) => (
+          {dynamicCategories.map((cat) => (
             <Link
               href={`/catalog?category=${cat.id}`}
               key={cat.id}
@@ -178,9 +190,13 @@ export default function Home() {
           </Link>
         </div>
         <div className="product-grid">
-          {mockProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {displayProducts.length > 0 ? (
+            displayProducts.map((product) => (
+              <ProductCard key={product.id} product={product as any} />
+            ))
+          ) : (
+            <p style={{ color: 'var(--text-secondary)' }}>Товары не найдены.</p>
+          )}
         </div>
       </section>
 

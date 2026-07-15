@@ -14,6 +14,8 @@ import {
 } from "react-icons/fi";
 import { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
+import { getPublicProducts, getPublicUniversities } from "@/actions/products";
+import { useEffect } from "react";
 import "./page.scss";
 
 type University = {
@@ -40,18 +42,26 @@ type FilterState = {
   inStock: boolean;
 };
 
-const universities: University[] = [
-  { id: "all", shortName: "Все университеты", fullName: "Все университеты", count: 36, mark: "U", tone: "#86a8d8" },
-  { id: "mgu", shortName: "МГУ", fullName: "Московский государственный университет им. М. В. Ломоносова", count: 12, mark: "М", tone: "#8fb0d4" },
-  { id: "mifi", shortName: "МИФИ", fullName: "Национальный исследовательский ядерный университет", count: 8, mark: "⚛", tone: "#7fa6ff" },
-  { id: "spbgu", shortName: "СПбГУ", fullName: "Санкт-Петербургский государственный университет", count: 10, mark: "✹", tone: "#d5d1c7" },
-  { id: "vshe", shortName: "ВШЭ", fullName: "Высшая школа экономики", count: 9, mark: "B", tone: "#d8d8d8" },
-  { id: "mfti", shortName: "МФТИ", fullName: "Московский физико-технический институт", count: 7, mark: "Λ", tone: "#d5e5ff" },
-  { id: "urfu", shortName: "УрФУ", fullName: "Уральский федеральный университет", count: 9, mark: "У", tone: "#d9d9d9" },
-  { id: "tgu", shortName: "ТГУ", fullName: "Томский государственный университет", count: 6, mark: "T", tone: "#b4c8e6" },
-  { id: "rudn", shortName: "РУДН", fullName: "Российский университет дружбы народов", count: 5, mark: "R", tone: "#d0c1a1" },
-];
 
+const filterColors = [
+  { id: "black", hex: "#0c1116" },
+  { id: "white", hex: "#f3f0e9" },
+  { id: "gray", hex: "#d4d7dc" },
+  { id: "darkblue", hex: "#142744" },
+  { id: "beige", hex: "#9b8870" },
+  { id: "green", hex: "#17342e" },
+];
+const filterSizes = ["S", "M", "L", "XL"];
+const filterMaterials = ["Хлопок", "Футер", "Полиэстер", "Керамика", "Металл", "Бумага", "Холст"];
+const defaultFilters: FilterState = {
+  category: "all",
+  priceRange: [0, 5000],
+  colors: [],
+  sizes: [],
+  materials: [],
+  universities: [],
+  inStock: false,
+};
 const categories = [
   { id: "all", name: "Все товары", count: 128 },
   { id: "hoodie", name: "Худи", count: 23 },
@@ -63,147 +73,26 @@ const categories = [
   { id: "notebook", name: "Блокноты", count: 12 },
 ];
 
-const products: UniversityProduct[] = [
-  {
-    id: "uni-1",
-    name: "Худи МГУ",
-    description: "Темно-синее худи с университетской эмблемой.",
-    price: 3690,
-    imageUrl: "/category-hoodie-premium.webp",
-    category: "hoodie",
-    availableSizes: ["S", "M", "L", "XL"],
-    availableColors: ["darkblue"],
-    materials: ["Хлопок", "Футер"],
-    inStock: true,
-    university: "mgu",
-    badge: "М",
-  },
-  {
-    id: "uni-2",
-    name: "Футболка МИФИ",
-    description: "Светлая футболка с принтом МИФИ.",
-    price: 1490,
-    imageUrl: "/category-tshirt-white-premium.webp",
-    category: "tshirt",
-    availableSizes: ["S", "M", "L", "XL"],
-    availableColors: ["white"],
-    materials: ["Хлопок"],
-    inStock: true,
-    university: "mifi",
-    badge: "⚛",
-  },
-  {
-    id: "uni-3",
-    name: "Блокнот СПбГУ",
-    description: "Блокнот с плотной обложкой и университетской графикой.",
-    price: 590,
-    imageUrl: "/category-teams-premium.webp",
-    category: "other",
-    materials: ["Бумага"],
-    inStock: true,
-    university: "spbgu",
-    badge: "✹",
-  },
-  {
-    id: "uni-4",
-    name: "Кружка ВШЭ",
-    description: "Матовая керамическая кружка.",
-    price: 690,
-    imageUrl: "/category-accessories-premium.webp",
-    category: "mug",
-    availableColors: ["black"],
-    materials: ["Керамика"],
-    inStock: true,
-    university: "vshe",
-    badge: "B",
-  },
-  {
-    id: "uni-5",
-    name: "Шоппер МФТИ",
-    description: "Хлопковый шоппер для учебы и ноутбука.",
-    price: 890,
-    imageUrl: "/category-university-grey.webp",
-    category: "other",
-    availableColors: ["beige"],
-    materials: ["Хлопок", "Холст"],
-    inStock: true,
-    university: "mfti",
-    badge: "Λ",
-  },
-  {
-    id: "uni-6",
-    name: "Стикерпак УрФУ",
-    description: "Набор виниловых стикеров для ноутбука.",
-    price: 390,
-    imageUrl: "/category-stickers-white-premium3.webp",
-    category: "sticker",
-    materials: ["Бумага"],
-    inStock: true,
-    university: "urfu",
-    badge: "У",
-  },
-  {
-    id: "uni-7",
-    name: "Кепка ТГУ",
-    description: "Темно-синяя кепка с лаконичной вышивкой.",
-    price: 990,
-    imageUrl: "/category-accessories-premium.webp",
-    category: "accessories",
-    availableColors: ["darkblue"],
-    materials: ["Хлопок"],
-    inStock: true,
-    university: "tgu",
-    badge: "T",
-  },
-  {
-    id: "uni-8",
-    name: "Футболка РУДН",
-    description: "Футболка с университетским знаком.",
-    price: 1490,
-    imageUrl: "/category-tshirt-white-premium.webp",
-    category: "tshirt",
-    availableSizes: ["S", "M", "L", "XL"],
-    availableColors: ["white"],
-    materials: ["Хлопок"],
-    inStock: true,
-    university: "rudn",
-    badge: "R",
-  },
-];
-
-const minPrice = 390;
-const maxPrice = 3690;
-const filterColors = [
-  { id: "black", hex: "#0c1116" },
-  { id: "white", hex: "#f3f0e9" },
-  { id: "gray", hex: "#d4d7dc" },
-  { id: "darkblue", hex: "#142744" },
-  { id: "beige", hex: "#9b8870" },
-  { id: "green", hex: "#17342e" },
-];
-const filterSizes = ["XS", "S", "M", "L", "XL", "XXL"];
-const filterMaterials = ["Хлопок", "Футер", "Полиэстер", "Керамика", "Металл", "Бумага", "Холст"];
-const defaultFilters: FilterState = {
-  category: "all",
-  priceRange: [minPrice, maxPrice],
-  colors: [],
-  sizes: [],
-  materials: [],
-  universities: [],
-  inStock: false,
-};
-
-const collectionCards = [
-  { university: universities[1], image: "/banner-one.webp", className: "mgu" },
-  { university: universities[2], image: "/banner-two.webp", className: "mifi" },
-  { university: universities[3], image: "/hero-moc.webp", className: "spbgu" },
-  { university: universities[4], image: "/hero-mockup.webp", className: "vshe" },
-];
-
 
 export default function UniversitiesPage() {
   const [draftFilters, setDraftFilters] = useState<FilterState>(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(defaultFilters);
+  const [products, setProducts] = useState<any[]>([]);
+  const [universities, setUniversities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [maxPriceLimit, setMaxPriceLimit] = useState(5000);
+
+  useEffect(() => {
+    Promise.all([getPublicProducts(), getPublicUniversities()]).then(([prods, unis]) => {
+      setProducts(prods);
+      setUniversities(unis);
+      const newMax = prods.length > 0 ? Math.max(...prods.map((p: any) => p.price)) : 5000;
+      setMaxPriceLimit(newMax);
+      setDraftFilters((prev) => ({ ...prev, priceRange: [prev.priceRange[0], newMax] }));
+      setAppliedFilters((prev) => ({ ...prev, priceRange: [prev.priceRange[0], newMax] }));
+      setLoading(false);
+    });
+  }, []);
 
   const setCategoryFilter = (category: string) => {
     setDraftFilters((currentFilters) => ({ ...currentFilters, category }));
@@ -226,8 +115,8 @@ export default function UniversitiesPage() {
   };
 
   const resetFilters = () => {
-    setDraftFilters(defaultFilters);
-    setAppliedFilters(defaultFilters);
+    setDraftFilters({ ...defaultFilters, priceRange: [0, maxPriceLimit] });
+    setAppliedFilters({ ...defaultFilters, priceRange: [0, maxPriceLimit] });
   };
 
   const handleTabClick = (universityId: string) => {
@@ -238,15 +127,15 @@ export default function UniversitiesPage() {
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const matchesUniversity = appliedFilters.universities.length === 0 || appliedFilters.universities.includes(product.university);
+      const matchesUniversity = appliedFilters.universities.length === 0 || (product.universityId && appliedFilters.universities.includes(product.universityId));
       const matchesCategory = appliedFilters.category === "all" || product.category === appliedFilters.category;
       const matchesPrice = product.price >= appliedFilters.priceRange[0] && product.price <= appliedFilters.priceRange[1];
       const matchesColor =
-        appliedFilters.colors.length === 0 || product.availableColors?.some((color) => appliedFilters.colors.includes(color));
+        appliedFilters.colors.length === 0 || product.availableColors?.some((color: string) => appliedFilters.colors.includes(color));
       const matchesSize =
-        appliedFilters.sizes.length === 0 || product.availableSizes?.some((size) => appliedFilters.sizes.includes(size));
+        appliedFilters.sizes.length === 0 || product.availableSizes?.some((size: string) => appliedFilters.sizes.includes(size));
       const matchesMaterial =
-        appliedFilters.materials.length === 0 || product.materials?.some((material) => appliedFilters.materials.includes(material));
+        appliedFilters.materials.length === 0 || product.materials?.some((material: string) => appliedFilters.materials.includes(material));
       const matchesStock = !appliedFilters.inStock || product.inStock;
 
       return matchesUniversity && matchesCategory && matchesPrice && matchesColor && matchesSize && matchesMaterial && matchesStock;
@@ -340,31 +229,31 @@ export default function UniversitiesPage() {
               <input
                 type="range"
                 className="range-input"
-                min={minPrice}
-                max={maxPrice}
+                min={0}
+                max={maxPriceLimit}
                 value={draftFilters.priceRange[0]}
                 onChange={(event) => {
-                  const nextMin = Math.min(Number(event.target.value), draftFilters.priceRange[1] - 100);
-                  setDraftFilters((currentFilters) => ({ ...currentFilters, priceRange: [nextMin, currentFilters.priceRange[1]] }));
+                  const value = Math.min(Number(event.target.value), draftFilters.priceRange[1] - 100);
+                  setDraftFilters((currentFilters) => ({ ...currentFilters, priceRange: [value, currentFilters.priceRange[1]] }));
                 }}
               />
               <input
                 type="range"
                 className="range-input"
-                min={minPrice}
-                max={maxPrice}
+                min={0}
+                max={maxPriceLimit}
                 value={draftFilters.priceRange[1]}
                 onChange={(event) => {
-                  const nextMax = Math.max(Number(event.target.value), draftFilters.priceRange[0] + 100);
-                  setDraftFilters((currentFilters) => ({ ...currentFilters, priceRange: [currentFilters.priceRange[0], nextMax] }));
+                  const value = Math.max(Number(event.target.value), draftFilters.priceRange[0] + 100);
+                  setDraftFilters((currentFilters) => ({ ...currentFilters, priceRange: [currentFilters.priceRange[0], value] }));
                 }}
               />
               <div className="slider-track">
                 <div
                   className="slider-range"
                   style={{
-                    left: `${((draftFilters.priceRange[0] - minPrice) / (maxPrice - minPrice)) * 100}%`,
-                    right: `${100 - ((draftFilters.priceRange[1] - minPrice) / (maxPrice - minPrice)) * 100}%`,
+                    left: `${(draftFilters.priceRange[0] / maxPriceLimit) * 100}%`,
+                    right: `${100 - (draftFilters.priceRange[1] / maxPriceLimit) * 100}%`,
                   }}
                 ></div>
               </div>
@@ -374,7 +263,7 @@ export default function UniversitiesPage() {
                 type="text"
                 value={draftFilters.priceRange[0]}
                 onChange={(event) => {
-                  const nextMin = Math.min(Number(event.target.value.replace(/\D/g, "")) || minPrice, draftFilters.priceRange[1] - 100);
+                  const nextMin = Math.min(Number(event.target.value.replace(/\D/g, "")) || 0, draftFilters.priceRange[1] - 100);
                   setDraftFilters((currentFilters) => ({ ...currentFilters, priceRange: [nextMin, currentFilters.priceRange[1]] }));
                 }}
               />
@@ -382,7 +271,7 @@ export default function UniversitiesPage() {
                 type="text"
                 value={draftFilters.priceRange[1]}
                 onChange={(event) => {
-                  const nextMax = Math.max(Number(event.target.value.replace(/\D/g, "")) || maxPrice, draftFilters.priceRange[0] + 100);
+                  const nextMax = Math.max(Number(event.target.value.replace(/\D/g, "")) || maxPriceLimit, draftFilters.priceRange[0] + 100);
                   setDraftFilters((currentFilters) => ({ ...currentFilters, priceRange: [currentFilters.priceRange[0], nextMax] }));
                 }}
               />
@@ -491,18 +380,20 @@ export default function UniversitiesPage() {
           </div>
 
           <div className="university-collections">
-            {collectionCards.map(({ university, image, className }) => (
-              <Link href={`/universities?university=${university.id}`} className={`collection-card ${className}`} key={university.id}>
-                <Image src={image} alt={university.fullName} fill sizes="(max-width: 900px) 100vw, 50vw" />
-                <span className="collection-overlay" />
-                <span className="collection-copy">
-                  <strong>{university.shortName}</strong>
-                  <small>{university.fullName}</small>
-                  <em>Смотреть коллекцию <FiChevronRight /></em>
-                </span>
-                <span className="collection-mark">{university.mark}</span>
-              </Link>
-            ))}
+            {!loading && universities.slice(1, 5).map((university, idx) => {
+              const images = ["/banner-one.webp", "/banner-two.webp", "/hero-moc.webp", "/hero-mockup.webp"];
+              const image = images[idx % images.length];
+              return (
+                <Link href={`/universities?university=${university.slug}`} className={`collection-card`} key={university.id}>
+                  <Image src={image} alt={university.fullName || "Изображение университета"} fill sizes="(max-width: 900px) 100vw, 50vw" />
+                  <span className="collection-overlay" />
+                  <span className="collection-copy">
+                    <strong>{university.shortName}</strong>
+                    <small>{university.fullName}</small>
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </section>
       </div>

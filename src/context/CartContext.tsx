@@ -2,31 +2,24 @@
 
 import { ReactNode, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { CartItem } from "@/types";
-import { mockProducts } from "@/lib/mockData";
+import { CartItem, Product } from "@/types";
 import { getSerializedCartItems, useCartStore } from "@/store/cartStore";
 
 type DbCartItem = {
   productId: string;
   quantity: number;
-  selectedSize?: string;
-  selectedColor?: string;
+  selectedSize?: string | null;
+  selectedColor?: string | null;
+  product: Product;
 };
 
 function mapDbCartItems(cartItems: DbCartItem[]): CartItem[] {
-  return cartItems.reduce<CartItem[]>((mappedItems, dbItem) => {
-    const product = mockProducts.find((item) => item.id === dbItem.productId);
-    if (!product) return mappedItems;
-
-    mappedItems.push({
-      product,
-      quantity: dbItem.quantity,
-      selectedSize: dbItem.selectedSize,
-      selectedColor: dbItem.selectedColor,
-    });
-
-    return mappedItems;
-  }, []);
+  return cartItems.map((dbItem) => ({
+    product: dbItem.product,
+    quantity: dbItem.quantity,
+    selectedSize: dbItem.selectedSize || undefined,
+    selectedColor: dbItem.selectedColor || undefined,
+  }));
 }
 
 function CartSync() {
