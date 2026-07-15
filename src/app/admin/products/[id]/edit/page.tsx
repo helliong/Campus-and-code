@@ -328,12 +328,20 @@ export default function EditProductPage() {
                   display: 'flex', alignItems: 'center', gap: '6px',
                   padding: '8px 12px', borderRadius: '20px',
                   border: `2px solid ${selectedColors.includes(color.id) ? 'var(--accent-color)' : 'var(--border-color)'}`,
-                  background: 'var(--surface-color)', cursor: 'pointer',
-                  color: 'var(--text-main)', fontWeight: selectedColors.includes(color.id) ? '600' : 'normal'
+                  background: selectedColors.includes(color.id) ? 'var(--accent-color)' : 'var(--surface-color)', 
+                  cursor: 'pointer',
+                  color: selectedColors.includes(color.id) ? '#fff' : 'var(--text-main)', 
+                  fontWeight: selectedColors.includes(color.id) ? '600' : 'normal',
+                  transition: 'all 0.2s ease'
                 }}
               >
-                <span style={{ width: '16px', height: '16px', borderRadius: '50%', background: color.hex, border: '1px solid rgba(0,0,0,0.1)' }}></span>
+                <span style={{ width: '16px', height: '16px', borderRadius: '50%', background: color.hex, border: '1px solid rgba(0,0,0,0.2)' }}></span>
                 {color.label}
+                {selectedColors.includes(color.id) && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '4px' }}>
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                )}
               </button>
             ))}
           </div>
