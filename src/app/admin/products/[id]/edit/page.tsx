@@ -26,12 +26,28 @@ export default function EditProductPage() {
   
   const [category, setCategory] = useState("hoodie");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
 
   const sizesList = ["S", "M", "L", "XL"];
+  const colorsList = [
+    { id: "black", label: "Чёрный", hex: "#1A1A1A" },
+    { id: "blue", label: "Синий", hex: "#1C2331" },
+    { id: "white", label: "Белый", hex: "#F5F5F5" },
+    { id: "gray", label: "Серый", hex: "#A9A9A9" },
+    { id: "beige", label: "Бежевый", hex: "#EADDD7" },
+    { id: "red", label: "Красный", hex: "#E63946" },
+    { id: "green", label: "Зелёный", hex: "#2A9D8F" },
+  ];
 
   const toggleSize = (size: string) => {
     setSelectedSizes(prev => 
       prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
+    );
+  };
+
+  const toggleColor = (colorId: string) => {
+    setSelectedColors(prev => 
+      prev.includes(colorId) ? prev.filter(c => c !== colorId) : [...prev, colorId]
     );
   };
 
@@ -48,6 +64,7 @@ export default function EditProductPage() {
         if (data.oldPrice) setOldPriceStr(data.oldPrice.toString());
         setCategory(data.category || "hoodie");
         setSelectedSizes(data.availableSizes || []);
+        setSelectedColors(data.availableColors || []);
         
         const images = data.images && data.images.length > 0 ? data.images : (data.imageUrl ? [data.imageUrl] : []);
         setExistingImages(images);
@@ -78,12 +95,28 @@ export default function EditProductPage() {
     setOldPriceStr(Number(rawValue).toLocaleString("ru-RU"));
   };
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
   const handleFiles = (newFiles: FileList | File[]) => {
     const fileArray = Array.from(newFiles);
-    const totalCount = existingImages.length + files.length + fileArray.length;
-    let allowedFiles = fileArray;
+    
+    const validFiles = fileArray.filter(file => {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        alert(`Файл ${file.name} имеет неподдерживаемый формат. Доступны: JPG, PNG, WEBP.`);
+        return false;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`Файл ${file.name} слишком большой. Максимальный размер: 5 МБ.`);
+        return false;
+      }
+      return true;
+    });
+
+    const totalCount = existingImages.length + files.length + validFiles.length;
+    let allowedFiles = validFiles;
     if (totalCount > 8) {
-      allowedFiles = fileArray.slice(0, Math.max(0, 8 - (existingImages.length + files.length)));
+      allowedFiles = validFiles.slice(0, Math.max(0, 8 - (existingImages.length + files.length)));
     }
     
     const newTotalFiles = [...files, ...allowedFiles];
@@ -163,6 +196,7 @@ export default function EditProductPage() {
       // 2. Update product
       const productData = {
         name: formData.get("name"),
+        sku: formData.get("sku"),
         price: priceStr.replace(/\D/g, ""),
         oldPrice: oldPriceStr ? oldPriceStr.replace(/\D/g, "") : null,
         category: formData.get("category"),
@@ -173,6 +207,7 @@ export default function EditProductPage() {
         stockCount: formData.get("stockCount"),
         universityId: formData.get("universityId") || initialData?.universityId,
         availableSizes: (category === "hoodie" || category === "tshirt") ? selectedSizes : [],
+        availableColors: selectedColors,
         isPublished: true, 
       };
 
@@ -215,6 +250,11 @@ export default function EditProductPage() {
         <div className="form-group">
           <label>Название</label>
           <input type="text" name="name" defaultValue={initialData?.name} required />
+        </div>
+
+        <div className="form-group">
+          <label>Артикул (SKU)</label>
+          <input type="text" name="sku" defaultValue={initialData?.sku} required maxLength={30} placeholder="Например: CC-HOOD-001" />
         </div>
 
         <div className="form-group">
@@ -276,6 +316,30 @@ export default function EditProductPage() {
         )}
 
         <div className="form-group">
+          <label>Доступные цвета</label>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            {colorsList.map(color => (
+              <button 
+                key={color.id}
+                type="button"
+                className={`color-pill ${selectedColors.includes(color.id) ? 'active' : ''}`}
+                onClick={() => toggleColor(color.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '8px 12px', borderRadius: '20px',
+                  border: `2px solid ${selectedColors.includes(color.id) ? 'var(--accent-color)' : 'var(--border-color)'}`,
+                  background: 'var(--surface-color)', cursor: 'pointer',
+                  color: 'var(--text-main)', fontWeight: selectedColors.includes(color.id) ? '600' : 'normal'
+                }}
+              >
+                <span style={{ width: '16px', height: '16px', borderRadius: '50%', background: color.hex, border: '1px solid rgba(0,0,0,0.1)' }}></span>
+                {color.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-group">
           <label>Описание</label>
           <textarea name="description" defaultValue={initialData?.description || ""} />
         </div>
@@ -286,7 +350,12 @@ export default function EditProductPage() {
         </div>
 
         <div className="form-group">
-          <label>Изображения (до 8 штук)</label>
+          <label>
+            Изображения (до 8 штук)
+            <span style={{ display: 'block', fontSize: '0.85em', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
+              Рекомендации: формат JPG, PNG или WEBP, до 5 МБ на файл. Идеальные пропорции 3:4 или 1:1, светлый фон. Первое фото станет обложкой.
+            </span>
+          </label>
           <div 
             className={`drag-drop-zone ${isDragging ? 'dragging' : ''}`}
             onDragOver={onDragOver}

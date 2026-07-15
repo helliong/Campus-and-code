@@ -67,7 +67,8 @@ export default function ProductCard({ product }: { product: Product }) {
     }
   };
 
-  const productUrl = `/product/${product.id}-${generateSlug(product.name)}`;
+  const identifier = product.sku || product.id;
+  const productUrl = `/product/${identifier}-${generateSlug(product.name)}`;
 
   return (
     <div className="product-card">

@@ -20,9 +20,18 @@ export async function POST(req: Request) {
         where: { userId: session.user.id }
       });
 
+      const localProductIds = localCart.map(i => i.productId);
+      const existingProducts = await prisma.product.findMany({
+        where: { id: { in: localProductIds } },
+        select: { id: true }
+      });
+      const validLocalProductIds = new Set(existingProducts.map(p => p.id));
+      
+      const validLocalCart = localCart.filter(i => validLocalProductIds.has(i.productId));
+
       const mergedCart = [...dbCartItems];
 
-      for (const localItem of localCart) {
+      for (const localItem of validLocalCart) {
         const existingDbItemIndex = mergedCart.findIndex(dbItem => 
           dbItem.productId === localItem.productId && 
           dbItem.selectedSize === (localItem.selectedSize || null) && 
@@ -67,15 +76,25 @@ export async function POST(req: Request) {
     if (action === 'save') {
       await prisma.cartItem.deleteMany({ where: { userId: session.user.id } });
       if (localCart.length > 0) {
-        await prisma.cartItem.createMany({
-          data: localCart.map(item => ({
-            userId: session.user.id,
-            productId: item.productId,
-            quantity: item.quantity,
-            selectedSize: item.selectedSize || null,
-            selectedColor: item.selectedColor || null
-          }))
+        const localProductIds = localCart.map(i => i.productId);
+        const existingProducts = await prisma.product.findMany({
+          where: { id: { in: localProductIds } },
+          select: { id: true }
         });
+        const validLocalProductIds = new Set(existingProducts.map(p => p.id));
+        const validLocalCart = localCart.filter(i => validLocalProductIds.has(i.productId));
+
+        if (validLocalCart.length > 0) {
+          await prisma.cartItem.createMany({
+            data: validLocalCart.map(item => ({
+              userId: session.user.id,
+              productId: item.productId,
+              quantity: item.quantity,
+              selectedSize: item.selectedSize || null,
+              selectedColor: item.selectedColor || null
+            }))
+          });
+        }
       }
       return NextResponse.json({ success: true }, { status: 200 });
     }

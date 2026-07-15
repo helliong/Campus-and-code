@@ -42,8 +42,8 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
     
-    if (!data.name || !data.price || !data.imageUrl || !data.category) {
-       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!data.name || !data.price || !data.imageUrl || !data.category || !data.sku) {
+       return NextResponse.json({ error: "Missing required fields (including SKU)" }, { status: 400 });
     }
 
     // if UNIVERSITY_ADMIN, force their universityId
@@ -58,6 +58,7 @@ export async function POST(request: Request) {
       data: {
         name: data.name,
         slug: slug,
+        sku: data.sku.trim().replace(/\s+/g, '-'),
         description: data.description || "",
         price: Number(data.price),
         oldPrice: data.oldPrice ? Number(data.oldPrice) : null,

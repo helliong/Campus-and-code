@@ -43,8 +43,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   try {
     const data = await request.json();
     
-    if (!data.name || !data.price || (!data.imageUrl && (!data.images || data.images.length === 0)) || !data.category) {
-       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!data.name || !data.price || (!data.imageUrl && (!data.images || data.images.length === 0)) || !data.category || !data.sku) {
+       return NextResponse.json({ error: "Missing required fields (including SKU)" }, { status: 400 });
     }
 
     const existingProduct = await prisma.product.findUnique({ where: { id } });
@@ -67,6 +67,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       data: {
         name: data.name,
         slug: slug,
+        sku: data.sku.trim().replace(/\s+/g, '-'),
         description: data.description || "",
         price: Number(data.price),
         oldPrice: data.oldPrice ? Number(data.oldPrice) : null,

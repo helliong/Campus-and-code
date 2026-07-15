@@ -43,6 +43,8 @@ export default function ProductClient({ product }: { product: Product }) {
     white: "#F5F5F5",
     gray: "#A9A9A9",
     beige: "#EADDD7",
+    red: "#E63946",
+    green: "#2A9D8F",
   };
 
   const colorsToRender = product.availableColors || [

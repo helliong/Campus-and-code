@@ -22,9 +22,15 @@ export async function POST(req: Request) {
       const combined = Array.from(new Set([...dbProductIds, ...localFavorites]));
       const missing = combined.filter(id => !dbProductIds.includes(id));
       
-      if (missing.length > 0) {
+      const existingProducts = await prisma.product.findMany({
+        where: { id: { in: missing } },
+        select: { id: true }
+      });
+      const validMissingIds = existingProducts.map(p => p.id);
+      
+      if (validMissingIds.length > 0) {
         await prisma.favorite.createMany({
-          data: missing.map(pid => ({ userId: session.user.id, productId: pid })),
+          data: validMissingIds.map(pid => ({ userId: session.user.id, productId: pid })),
           skipDuplicates: true
         });
       }
@@ -39,10 +45,18 @@ export async function POST(req: Request) {
     if (action === 'save' && Array.isArray(localFavorites)) {
       await prisma.favorite.deleteMany({ where: { userId: session.user.id } });
       if (localFavorites.length > 0) {
-        await prisma.favorite.createMany({
-          data: localFavorites.map(pid => ({ userId: session.user.id, productId: pid })),
-          skipDuplicates: true
+        const existingProducts = await prisma.product.findMany({
+          where: { id: { in: localFavorites } },
+          select: { id: true }
         });
+        const validLocalIds = existingProducts.map(p => p.id);
+        
+        if (validLocalIds.length > 0) {
+          await prisma.favorite.createMany({
+            data: validLocalIds.map(pid => ({ userId: session.user.id, productId: pid })),
+            skipDuplicates: true
+          });
+        }
       }
       return NextResponse.json({ success: true }, { status: 200 });
     }
