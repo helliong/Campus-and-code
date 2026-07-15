@@ -288,7 +288,7 @@ export default function NewProductPage() {
                   transition: 'all 0.2s ease'
                 }}
               >
-                <span style={{ width: '16px', height: '16px', borderRadius: '50%', background: color.hex, border: '1px solid rgba(0,0,0,0.2)' }}></span>
+                <span style={{ width: '16px', height: '16px', borderRadius: '50%', background: color.hex, border: '1px solid var(--text-main)' }}></span>
                 {color.label}
               </button>
             ))}
