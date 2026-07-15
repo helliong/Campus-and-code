@@ -7,18 +7,13 @@ import {
   FiChevronDown,
   FiChevronRight,
   FiGrid,
-  FiHeart,
   FiList,
   FiRefreshCw,
   FiSearch,
-  FiShoppingCart,
   FiCheck,
 } from "react-icons/fi";
-import { PiBaseballCap, PiHoodie, PiSticker } from "react-icons/pi";
-import { LuCoffee, LuShoppingBag, LuShirt } from "react-icons/lu";
 import { Product } from "@/types";
-import { useCart } from "@/context/CartContext";
-import { useFavorites } from "@/context/FavoritesContext";
+import ProductCard from "@/components/ProductCard";
 import "./page.scss";
 
 type University = {
@@ -41,6 +36,7 @@ type FilterState = {
   colors: string[];
   sizes: string[];
   materials: string[];
+  universities: string[];
   inStock: boolean;
 };
 
@@ -193,6 +189,7 @@ const defaultFilters: FilterState = {
   colors: [],
   sizes: [],
   materials: [],
+  universities: [],
   inStock: false,
 };
 
@@ -203,124 +200,17 @@ const collectionCards = [
   { university: universities[4], image: "/hero-mockup.webp", className: "vshe" },
 ];
 
-const categoryIcons: Record<string, ComponentType<{ className?: string }>> = {
-  hoodie: PiHoodie,
-  tshirt: LuShirt,
-  sticker: PiSticker,
-  accessories: PiBaseballCap,
-  mug: LuCoffee,
-  other: LuShoppingBag,
-};
-
-function UniversityProductCard({ product }: { product: UniversityProduct }) {
-  const { items, addToCart, updateQuantity } = useCart();
-  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
-  const [selectedSize, setSelectedSize] = useState(product.availableSizes?.[0]);
-  const selectedColor = product.availableColors?.[0];
-  const favorite = isFavorite(product.id);
-  const cartItem = items.find(
-    (item) =>
-      item.product.id === product.id &&
-      item.selectedSize === selectedSize &&
-      item.selectedColor === selectedColor
-  );
-  const quantity = cartItem?.quantity ?? 0;
-  const Icon = categoryIcons[product.category] ?? LuShoppingBag;
-
-  const handleFavoriteToggle = () => {
-    if (favorite) {
-      removeFavorite(product.id);
-      return;
-    }
-
-    addFavorite(product);
-  };
-
-  const handleAddToCart = () => {
-    addToCart(product, 1, selectedSize, selectedColor);
-  };
-
-  const handleIncrement = () => {
-    updateQuantity(product.id, quantity + 1, selectedSize, selectedColor);
-  };
-
-  const handleDecrement = () => {
-    updateQuantity(product.id, quantity - 1, selectedSize, selectedColor);
-  };
-
-  return (
-    <article className="university-product-card">
-      <button
-        className={`favorite-button ${favorite ? "active" : ""}`}
-        type="button"
-        aria-label={favorite ? "Убрать из избранного" : "Добавить в избранное"}
-        onClick={handleFavoriteToggle}
-      >
-        <FiHeart />
-      </button>
-
-      <div className="university-badge" aria-hidden="true">
-        {product.badge}
-      </div>
-
-      <Link href={`/product/${product.id}`} className="product-image-link">
-        <Image src={product.imageUrl} alt={product.name} width={320} height={320} className="product-image" />
-      </Link>
-
-      <div className="product-meta">
-        <div className="product-kind">
-          <Icon className="kind-icon" />
-          <span>{categories.find((category) => category.id === product.category)?.name ?? "Товар"}</span>
-        </div>
-        <h3>{product.name}</h3>
-        <p>{product.price.toLocaleString("ru-RU")} ₽</p>
-      </div>
-
-      <div className="product-actions">
-        {product.availableSizes && (
-          <div className="size-list">
-            {product.availableSizes.map((size) => (
-              <button
-                key={size}
-                type="button"
-                className={selectedSize === size ? "active" : ""}
-                onClick={() => setSelectedSize(size)}
-              >
-                {size}
-              </button>
-            ))}
-          </div>
-        )}
-        {quantity > 0 ? (
-          <div className="quantity-controls" aria-label="Количество в корзине">
-            <button type="button" onClick={handleDecrement} aria-label="Уменьшить количество">
-              -
-            </button>
-            <span>{quantity}</span>
-            <button type="button" onClick={handleIncrement} aria-label="Увеличить количество">
-              +
-            </button>
-          </div>
-        ) : (
-          <button className="cart-button" type="button" onClick={handleAddToCart} aria-label="В корзину">
-            <FiShoppingCart />
-          </button>
-        )}
-      </div>
-    </article>
-  );
-}
 
 export default function UniversitiesPage() {
-  const [activeUniversity, setActiveUniversity] = useState("all");
   const [draftFilters, setDraftFilters] = useState<FilterState>(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(defaultFilters);
 
   const setCategoryFilter = (category: string) => {
     setDraftFilters((currentFilters) => ({ ...currentFilters, category }));
+    setAppliedFilters((currentFilters) => ({ ...currentFilters, category }));
   };
 
-  const toggleFilterValue = (key: "colors" | "sizes" | "materials", value: string) => {
+  const toggleFilterValue = (key: "colors" | "sizes" | "materials" | "universities", value: string) => {
     setDraftFilters((currentFilters) => ({
       ...currentFilters,
       [key]: currentFilters[key].includes(value)
@@ -338,12 +228,17 @@ export default function UniversitiesPage() {
   const resetFilters = () => {
     setDraftFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
-    setActiveUniversity("all");
+  };
+
+  const handleTabClick = (universityId: string) => {
+    const newUniversities = universityId === "all" ? [] : [universityId];
+    setDraftFilters((curr) => ({ ...curr, universities: newUniversities }));
+    setAppliedFilters((curr) => ({ ...curr, universities: newUniversities }));
   };
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const matchesUniversity = activeUniversity === "all" || product.university === activeUniversity;
+      const matchesUniversity = appliedFilters.universities.length === 0 || appliedFilters.universities.includes(product.university);
       const matchesCategory = appliedFilters.category === "all" || product.category === appliedFilters.category;
       const matchesPrice = product.price >= appliedFilters.priceRange[0] && product.price <= appliedFilters.priceRange[1];
       const matchesColor =
@@ -356,7 +251,7 @@ export default function UniversitiesPage() {
 
       return matchesUniversity && matchesCategory && matchesPrice && matchesColor && matchesSize && matchesMaterial && matchesStock;
     });
-  }, [activeUniversity, appliedFilters]);
+  }, [appliedFilters]);
 
   return (
     <main className="universities-page">
@@ -372,22 +267,29 @@ export default function UniversitiesPage() {
       </section>
 
       <section className="universities-tabs" aria-label="Выбор университета">
-        {universities.map((university) => (
-          <button
-            key={university.id}
-            className={activeUniversity === university.id ? "active" : ""}
-            type="button"
-            onClick={() => setActiveUniversity(university.id)}
-          >
-            <span className="tab-mark" style={{ color: university.tone }}>
-              {university.mark}
-            </span>
-            <span>
-              <strong>{university.shortName}</strong>
-              <small>{university.count}</small>
-            </span>
-          </button>
-        ))}
+        {universities.map((university) => {
+          const isActive =
+            university.id === "all"
+              ? appliedFilters.universities.length === 0
+              : appliedFilters.universities.length === 1 && appliedFilters.universities[0] === university.id;
+
+          return (
+            <button
+              key={university.id}
+              className={isActive ? "active" : ""}
+              type="button"
+              onClick={() => handleTabClick(university.id)}
+            >
+              <span className="tab-mark" style={{ color: university.tone }}>
+                {university.mark}
+              </span>
+              <span>
+                <strong>{university.shortName}</strong>
+                <small>{university.count}</small>
+              </span>
+            </button>
+          );
+        })}
       </section>
 
       <div className="universities-layout">
@@ -420,8 +322,8 @@ export default function UniversitiesPage() {
                   <div className="checkbox-left">
                     <input
                       type="checkbox"
-                      checked={activeUniversity === university.id}
-                      onChange={() => setActiveUniversity(activeUniversity === university.id ? "all" : university.id)}
+                      checked={draftFilters.universities.includes(university.id)}
+                      onChange={() => toggleFilterValue("universities", university.id)}
                     />
                     <span className="checkmark"><FiCheck /></span>
                     <span className="label-text">{university.shortName}</span>
@@ -584,7 +486,7 @@ export default function UniversitiesPage() {
 
           <div className="universities-grid">
             {filteredProducts.map((product) => (
-              <UniversityProductCard key={product.id} product={product} />
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
 

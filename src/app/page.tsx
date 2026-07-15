@@ -185,7 +185,7 @@ export default function Home() {
       </section>
 
       <section className="promo-banners-section">
-        <Link href="/catalog?category=universities" className="promo-banner">
+        <Link href="/universities" className="promo-banner">
           <Image
             src="/banner-one.webp"
             alt="Коллекции университетов"
