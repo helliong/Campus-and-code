@@ -14,6 +14,12 @@ enum Role {
   SUPERADMIN
 }
 
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -30,6 +36,7 @@ model User {
 
   favorites Favorite[]
   cartItems CartItem[]
+  verificationRequests VerificationRequest[]
 }
 
 model University {
@@ -39,9 +46,11 @@ model University {
   shortName String
   tone      String
   mark      String
+  emailDomains String[] @default([])
 
   admins    User[]
   products  Product[]
+  verificationRequests VerificationRequest[]
 }
 
 model Product {
@@ -102,5 +111,18 @@ model CartItem {
   product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId, selectedSize, selectedColor])
+}
+
+model VerificationRequest {
+  id           String             @id @default(cuid())
+  userId       String
+  universityId String
+  documentUrl  String?
+  status       VerificationStatus @default(PENDING)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university   University         @relation(fields: [universityId], references: [id], onDelete: Cascade)
 }
 

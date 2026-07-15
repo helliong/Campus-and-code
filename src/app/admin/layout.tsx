@@ -28,6 +28,9 @@ export default async function AdminLayout({
           <Link href="/admin/products" className="admin-nav-link">
             Товары
           </Link>
+          <Link href="/admin/verifications" className="admin-nav-link">
+            Заявки на статус
+          </Link>
           <Link href="/" className="admin-nav-link">
             Вернуться в магазин
           </Link>

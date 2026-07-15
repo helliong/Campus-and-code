@@ -41,11 +41,27 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const emailDomain = normalizedEmail.split("@")[1];
+    let role = "EXPLORER";
+    let universityId = undefined;
+
+    if (emailDomain) {
+      const university = await prisma.university.findFirst({
+        where: { emailDomains: { has: emailDomain } }
+      });
+      if (university) {
+        role = "STUDENT";
+        universityId = university.id;
+      }
+    }
+
     const newUser = await prisma.user.create({
       data: {
         name,
         email: normalizedEmail,
         password: hashedPassword,
+        role: role as any,
+        universityId,
       },
     });
 

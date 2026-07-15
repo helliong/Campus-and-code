@@ -19,6 +19,12 @@ export async function GET() {
         email: true,
         phone: true,
         role: true,
+        universityId: true,
+        university: { select: { shortName: true } },
+        verificationRequests: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        }
       },
     });
 
@@ -63,6 +69,12 @@ export async function PUT(request: Request) {
         email: true,
         phone: true,
         role: true,
+        universityId: true,
+        university: { select: { shortName: true } },
+        verificationRequests: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        }
       },
     });
 

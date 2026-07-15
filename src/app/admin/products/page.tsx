@@ -72,7 +72,7 @@ export default function AdminProductsPage() {
               <div className="admin-product-info">
                 <h3>{product.name}</h3>
                 <div className="price">{product.price} ₽</div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginTop: '10px' }}>
                   <div className={`status ${product.isPublished ? 'active' : 'inactive'}`}>
                     {product.isPublished ? 'Опубликован' : 'Черновик'}
                   </div>
