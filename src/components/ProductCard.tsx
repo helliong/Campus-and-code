@@ -18,6 +18,9 @@ const categoryNames: Record<string, string> = {
   sticker: 'Стикеры',
   accessories: 'Аксессуары',
   mug: 'Кружки',
+  bags: 'Сумки',
+  notebooks: 'Блокноты',
+  gadgets: 'Гаджеты',
   other: 'Разное'
 };
 

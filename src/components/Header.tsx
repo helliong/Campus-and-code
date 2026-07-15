@@ -56,7 +56,7 @@ export default function Header() {
           <Link href="/universities" className={`nav-link desktop-link ${isUniversitiesActive ? 'active' : ''}`}>
             Университеты
           </Link>
-          <Link href="/" className="nav-link desktop-link">
+          <Link href="/it-merch" className={`nav-link desktop-link ${pathname?.startsWith('/it-merch') ? 'active' : ''}`}>
             IT-мерч
           </Link>
           <Link href="/" className="nav-link desktop-link">
