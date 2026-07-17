@@ -482,6 +482,8 @@
 
       .carousel-nav-btn {
         position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
         z-index: 10;
         width: 40px;
         height: 40px;
@@ -497,17 +499,11 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
         &.right {
-          right: -20px;
-          @media (max-width: 1400px) {
-            right: 0;
-          }
+          right: 0.75rem;
         }
 
         &.left {
-          left: -20px;
-          @media (max-width: 1400px) {
-            left: 0;
-          }
+          left: 0.75rem;
         }
 
         &:hover {

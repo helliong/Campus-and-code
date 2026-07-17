@@ -3,10 +3,21 @@ import ProductClient from './ProductClient';
 import { prisma } from '@/lib/prisma';
 import './page.scss';
 
-export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProductPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ color?: string; size?: string }>;
+}) {
   const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
   const fullPath = decodeURIComponent(resolvedParams.id);
   const actualId = fullPath.split('-')[0];
+  const initialVariant = {
+    color: resolvedSearchParams?.color,
+    size: resolvedSearchParams?.size,
+  };
   
   // 1. Попробуем найти по полному совпадению slug (если мы сохраняем slug в таком виде)
   let product = await prisma.product.findUnique({
@@ -65,11 +76,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         materials: ['80% хлопок', '20% полиэстер'],
         inStock: true
       };
-      return <ProductClient product={testProduct as any} />;
+      return <ProductClient product={testProduct as any} initialVariant={initialVariant} />;
     }
     
     notFound();
   }
 
-  return <ProductClient product={product as any} />;
+  return <ProductClient product={product as any} initialVariant={initialVariant} />;
 }

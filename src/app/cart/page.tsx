@@ -30,8 +30,15 @@ function formatPrice(price: number) {
   return `${price.toLocaleString("ru-RU")} ₽`;
 }
 
-function getProductUrl(product: Product) {
-  return `/product/${product.id}-${generateSlug(product.name)}`;
+function getProductUrl(product: Product, options?: { color?: string; size?: string }) {
+  const url = `/product/${product.id}-${generateSlug(product.name)}`;
+  const params = new URLSearchParams();
+
+  if (options?.color) params.set("color", options.color);
+  if (options?.size) params.set("size", options.size);
+
+  const query = params.toString();
+  return query ? `${url}?${query}` : url;
 }
 
 function getCartItemImage(item: { product: Product; selectedColor?: string }) {
@@ -281,7 +288,10 @@ export default function CartPage() {
             <div className="cart-list">
               {items.map((item) => {
                 const rowKey = `${item.product.id}-${item.selectedSize || "none"}-${item.selectedColor || "none"}`;
-                const productUrl = getProductUrl(item.product);
+                const productUrl = getProductUrl(item.product, {
+                  color: item.selectedColor,
+                  size: item.selectedSize,
+                });
                 const rowTotal = item.product.price * item.quantity;
                 const productImage = getCartItemImage(item);
 

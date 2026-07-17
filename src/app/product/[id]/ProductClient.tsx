@@ -32,14 +32,21 @@ import {
   hasVariantStock,
 } from "@/lib/productVariants";
 
-export default function ProductClient({ product }: { product: Product }) {
+type ProductClientProps = {
+  product: Product;
+  initialVariant?: {
+    color?: string;
+    size?: string;
+  };
+};
+
+export default function ProductClient({ product, initialVariant }: ProductClientProps) {
   const { items, addToCart, updateQuantity } = useCart();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
 
   const favorite = isFavorite(product.id);
 
   const sizesToRender = product.availableSizes || [];
-  const [sizeState, setSizeState] = useState(sizesToRender[0] || "");
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
   const colorsMap: Record<string, string> = {
@@ -58,7 +65,19 @@ export default function ProductClient({ product }: { product: Product }) {
     "gray",
     "beige",
   ];
-  const [colorState, setColorState] = useState(colorsToRender[0] || "blue");
+  const initialColor =
+    initialVariant?.color && colorsToRender.includes(initialVariant.color)
+      ? initialVariant.color
+      : colorsToRender[0] || "blue";
+  const initialAvailableSizes = getAvailableSizesForColor(product, initialColor);
+  const initialSize =
+    initialVariant?.size &&
+    sizesToRender.includes(initialVariant.size) &&
+    (!initialAvailableSizes.length || initialAvailableSizes.includes(initialVariant.size))
+      ? initialVariant.size
+      : initialAvailableSizes[0] || sizesToRender[0] || "";
+  const [sizeState, setSizeState] = useState(initialSize);
+  const [colorState, setColorState] = useState(initialColor);
 
   const [activeTab, setActiveTab] = useState<
     "desc" | "specs" | "delivery" | "reviews"

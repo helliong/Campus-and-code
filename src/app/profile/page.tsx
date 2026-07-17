@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useEffect } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import OrderRowCard, { type OrderRowProps } from "@/components/OrderRowCard";
@@ -20,7 +20,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   const [profileData, setProfileData] = useState<any>(null);
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
@@ -164,30 +164,52 @@ export default function ProfilePage() {
         ? "Исследователь"
         : profileData?.role || "Пользователь";
 
-  const checkScroll = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(Math.ceil(scrollLeft + clientWidth) < scrollWidth);
-    }
-  };
+  const checkScroll = useCallback(() => {
+    const container = scrollRef.current;
+    if (!container) return;
 
-  useEffect(() => {
-    checkScroll();
-    window.addEventListener("resize", checkScroll);
-    return () => window.removeEventListener("resize", checkScroll);
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    const maxScrollLeft = scrollWidth - clientWidth;
+    const scrollTolerance = 2;
+
+    setCanScrollLeft(scrollLeft > scrollTolerance);
+    setCanScrollRight(scrollLeft < maxScrollLeft - scrollTolerance);
   }, []);
 
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver(checkScroll);
+
+    resizeObserver.observe(container);
+    window.addEventListener("resize", checkScroll);
+    checkScroll();
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", checkScroll);
+    };
+  }, [checkScroll]);
+
+  useEffect(() => {
+    const animationFrame = requestAnimationFrame(checkScroll);
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [checkScroll, recommendations]);
+
   const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 250, behavior: "smooth" });
-    }
+    const container = scrollRef.current;
+    if (!container) return;
+
+    container.scrollBy({ left: Math.floor(container.clientWidth * 0.85), behavior: "smooth" });
   };
 
   const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -250, behavior: "smooth" });
-    }
+    const container = scrollRef.current;
+    if (!container) return;
+
+    container.scrollBy({ left: -Math.floor(container.clientWidth * 0.85), behavior: "smooth" });
   };
 
   const showVerificationBlock =
