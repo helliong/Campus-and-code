@@ -131,6 +131,8 @@ export default function CheckoutPage() {
   const { data: session, status } = useSession();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoadState, setProfileLoadState] = useState<"idle" | "loaded" | "error">("idle");
+  const [checkoutEmail, setCheckoutEmail] = useState("");
+  const [checkoutPhone, setCheckoutPhone] = useState("");
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<DeliveryOption["id"]>("courier");
   const [selectedPaymentId, setSelectedPaymentId] = useState<PaymentOption["id"]>("card");
   const [city, setCity] = useState("Екатеринбург");
@@ -166,6 +168,8 @@ export default function CheckoutPage() {
       .then((data) => {
         if (isMounted) {
           setProfile(data);
+          setCheckoutEmail(data.email ?? "");
+          setCheckoutPhone(data.phone ?? "");
           setProfileLoadState("loaded");
         }
       })
@@ -180,6 +184,29 @@ export default function CheckoutPage() {
       isMounted = false;
     };
   }, [status]);
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let input = e.target.value.replace(/\D/g, "");
+    if (!input || input === "7") {
+      setCheckoutPhone("+7 ");
+      return;
+    }
+
+    if (input.startsWith("9")) input = "7" + input;
+    else if (input.startsWith("8")) input = "7" + input.substring(1);
+    else if (!input.startsWith("7")) input = "7" + input;
+
+    input = input.substring(0, 11);
+
+    let formatted = "+";
+    if (input.length > 0) formatted += input.substring(0, 1);
+    if (input.length > 1) formatted += " (" + input.substring(1, 4);
+    if (input.length > 4) formatted += ") " + input.substring(4, 7);
+    if (input.length > 7) formatted += "-" + input.substring(7, 9);
+    if (input.length > 9) formatted += "-" + input.substring(9, 11);
+
+    setCheckoutPhone(formatted);
+  };
 
   if (items.length === 0) {
     return (
@@ -238,11 +265,22 @@ export default function CheckoutPage() {
               <div className="contact-grid">
                 <label>
                   <span>Email</span>
-                  <input type="email" value={isProfileLoading ? "Загрузка..." : profile?.email ?? ""} readOnly />
+                  <input
+                    type="email"
+                    value={isProfileLoading ? "Загрузка..." : checkoutEmail}
+                    onChange={(e) => setCheckoutEmail(e.target.value)}
+                    disabled={isProfileLoading}
+                  />
                 </label>
                 <label>
                   <span>Телефон</span>
-                  <input type="tel" value={isProfileLoading ? "Загрузка..." : profile?.phone ?? ""} readOnly />
+                  <input
+                    type="tel"
+                    value={isProfileLoading ? "Загрузка..." : checkoutPhone}
+                    onChange={handlePhoneChange}
+                    disabled={isProfileLoading}
+                    placeholder="+7 (999) 000-00-00"
+                  />
                 </label>
               </div>
             )}

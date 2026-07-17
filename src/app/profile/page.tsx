@@ -28,6 +28,7 @@ export default function ProfilePage() {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [phoneError, setPhoneError] = useState("");
 
   const { items } = useCart();
   const { isFavorite } = useFavorites();
@@ -56,7 +57,7 @@ export default function ProfilePage() {
           const data = await res.json();
           setProfileData(data);
           setEditName(data.name || "");
-          setEditPhone(data.phone || "");
+          setEditPhone(data.phone || "+7 ");
           setEditEmail(data.email || "");
         }
       } catch (err) {
@@ -74,13 +75,14 @@ export default function ProfilePage() {
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let input = e.target.value.replace(/\D/g, "");
-    if (!input) {
-      setEditPhone("");
+    if (!input || input === "7") {
+      setEditPhone("+7 ");
       return;
     }
 
     if (input.startsWith("9")) input = "7" + input;
     else if (input.startsWith("8")) input = "7" + input.substring(1);
+    else if (!input.startsWith("7")) input = "7" + input;
 
     input = input.substring(0, 11);
 
@@ -95,13 +97,22 @@ export default function ProfilePage() {
   };
 
   const handleSaveProfile = async () => {
+    setPhoneError("");
+    const rawPhone = editPhone.replace(/\D/g, "");
+    if (rawPhone.length > 1 && rawPhone.length !== 11) {
+      setPhoneError("Введите полный номер телефона");
+      return;
+    }
+
+    const phoneToSave = rawPhone.length === 11 ? editPhone : "";
+
     try {
       const res = await fetch("/api/user/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: editName,
-          phone: editPhone,
+          phone: phoneToSave,
           email: editEmail,
         }),
       });
@@ -229,7 +240,13 @@ export default function ProfilePage() {
                       value={editPhone}
                       onChange={handlePhoneChange}
                       placeholder="+7 (999) 000-00-00"
+                      style={phoneError ? { borderColor: '#ff4757' } : {}}
                     />
+                    {phoneError && (
+                      <span style={{ color: '#ff4757', fontSize: '0.8rem', marginTop: '4px' }}>
+                        {phoneError}
+                      </span>
+                    )}
                   </div>
                   <div className="edit-actions">
                     <button onClick={handleSaveProfile} className="btn-save">

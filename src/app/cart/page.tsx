@@ -72,7 +72,8 @@ export default function CartPage() {
   }, [status]);
 
   const isStudent = session?.user?.role === "STUDENT" || profileData?.role === "STUDENT";
-  const discountAmount = isStudent ? getStudentDiscountAmount(cartTotal) : 0;
+  const studentDiscountPct = 10;
+  const discountAmount = isStudent ? Math.floor((cartTotal * studentDiscountPct) / 100) : 0;
   const selectedItems = items.filter((item) => item.isSelected !== false);
   const totalSelectedItems = selectedItems.reduce(
     (total, item) => total + item.quantity,
@@ -81,8 +82,7 @@ export default function CartPage() {
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
   const isAllSelected =
     items.length > 0 && items.every((item) => item.isSelected !== false);
-  const deliveryPrice = cartTotal >= 3000 || cartTotal === 0 ? 0 : 300;
-  const totalToPay = cartTotal - discountAmount + deliveryPrice;
+  const totalToPay = cartTotal - discountAmount;
   const [publicProducts, setPublicProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -445,14 +445,6 @@ export default function CartPage() {
                   {discountAmount > 0
                     ? `- ${formatPrice(discountAmount)}`
                     : "- 0 ₽"}
-                </strong>
-              </div>
-              <div>
-                <span>Доставка</span>
-                <strong>
-                  {deliveryPrice === 0
-                    ? "Бесплатно"
-                    : formatPrice(deliveryPrice)}
                 </strong>
               </div>
             </div>
