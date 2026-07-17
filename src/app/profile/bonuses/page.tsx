@@ -288,7 +288,7 @@ export default function ProfileBonusesPage() {
       <section className="bonus-section">
         <h2>Специальные предложения</h2>
         <div className="specials-grid">
-          <article className="special-card">
+          <article className="special-card double-bonus-special">
             <div>
               <span>До 31 мая</span>
               <h3>Больше покупок - больше бонусов!</h3>
@@ -297,7 +297,7 @@ export default function ProfileBonusesPage() {
             </div>
             <DoubleBonusVisual />
           </article>
-          <article className="special-card">
+          <article className="special-card hoodie-special">
             <div>
               <span>До 15 июня</span>
               <h3>Скидка 15% на мерч университетов</h3>

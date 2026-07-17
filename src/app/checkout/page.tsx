@@ -16,7 +16,10 @@ import {
   FiTruck,
 } from "react-icons/fi";
 import { useCart } from "@/context/CartContext";
-import { getStudentDiscountAmount, STUDENT_DISCOUNT_PERCENT } from "@/lib/pricing";
+import {
+  getStudentDiscountAmount,
+  STUDENT_DISCOUNT_PERCENT,
+} from "@/lib/pricing";
 import { getProductImagesForColor } from "@/lib/productVariants";
 import { CartItem } from "@/types";
 import "./page.scss";
@@ -43,6 +46,8 @@ type PaymentOption = {
   description: string;
   commission?: string;
   icon: "card" | "phone";
+  disabled?: boolean;
+  disabledReason?: string;
 };
 
 const colorNames: Record<string, string> = {
@@ -98,8 +103,10 @@ const paymentOptions: PaymentOption[] = [
     id: "on-delivery",
     title: "Картой при получении",
     description: "Оплата наличными или картой курьеру",
-    commission: "Комиссия: 1%",
+    commission: "Недоступно",
     icon: "card",
+    disabled: true,
+    disabledReason: "Этот способ оплаты временно недоступен",
   },
 ];
 
@@ -108,7 +115,10 @@ function formatPrice(price: number) {
 }
 
 function getCartItemImage(item: CartItem) {
-  return getProductImagesForColor(item.product, item.selectedColor)[0] || item.product.imageUrl;
+  return (
+    getProductImagesForColor(item.product, item.selectedColor)[0] ||
+    item.product.imageUrl
+  );
 }
 
 function getItemsWord(count: number) {
@@ -116,7 +126,8 @@ function getItemsWord(count: number) {
   const mod100 = count % 100;
 
   if (mod10 === 1 && mod100 !== 11) return "товар";
-  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return "товара";
+  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100))
+    return "товара";
   return "товаров";
 }
 
@@ -136,11 +147,15 @@ export default function CheckoutPage() {
   const items = allItems.filter((item) => item.isSelected !== false);
   const { data: session, status } = useSession();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [profileLoadState, setProfileLoadState] = useState<"idle" | "loaded" | "error">("idle");
+  const [profileLoadState, setProfileLoadState] = useState<
+    "idle" | "loaded" | "error"
+  >("idle");
   const [checkoutEmail, setCheckoutEmail] = useState("");
   const [checkoutPhone, setCheckoutPhone] = useState("");
-  const [selectedDeliveryId, setSelectedDeliveryId] = useState<DeliveryOption["id"]>("courier");
-  const [selectedPaymentId, setSelectedPaymentId] = useState<PaymentOption["id"]>("card");
+  const [selectedDeliveryId, setSelectedDeliveryId] =
+    useState<DeliveryOption["id"]>("courier");
+  const [selectedPaymentId, setSelectedPaymentId] =
+    useState<PaymentOption["id"]>("card");
   const [city, setCity] = useState("Екатеринбург");
   const [comment, setComment] = useState("");
   const [promoCode, setPromoCode] = useState("");
@@ -148,13 +163,17 @@ export default function CheckoutPage() {
 
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
   const selectedDelivery = useMemo(
-    () => deliveryOptions.find((option) => option.id === selectedDeliveryId) ?? deliveryOptions[0],
+    () =>
+      deliveryOptions.find((option) => option.id === selectedDeliveryId) ??
+      deliveryOptions[0],
     [selectedDeliveryId],
   );
-  const isStudent = session?.user?.role === "STUDENT" || profile?.role === "STUDENT";
+  const isStudent =
+    session?.user?.role === "STUDENT" || profile?.role === "STUDENT";
   const discount = isStudent ? getStudentDiscountAmount(cartTotal) : 0;
   const totalToPay = cartTotal + selectedDelivery.price - discount;
-  const isProfileLoading = status === "authenticated" && profileLoadState === "idle";
+  const isProfileLoading =
+    status === "authenticated" && profileLoadState === "idle";
 
   useEffect(() => {
     if (status !== "authenticated") {
@@ -264,7 +283,10 @@ export default function CheckoutPage() {
 
             {status === "unauthenticated" ? (
               <div className="checkout-auth-note">
-                <p>Войдите в аккаунт, чтобы использовать контактные данные из профиля.</p>
+                <p>
+                  Войдите в аккаунт, чтобы использовать контактные данные из
+                  профиля.
+                </p>
                 <Link href="/login">Войти</Link>
               </div>
             ) : (
@@ -299,9 +321,13 @@ export default function CheckoutPage() {
             </div>
 
             <label className="checkout-field">
-              <span>Город</span>
+              <span>Город, улица, дом, квартира</span>
               <span className="city-input-wrap">
-                <input value={city} onChange={(event) => setCity(event.target.value)} />
+                <input
+                  value={city}
+                  onChange={(event) => setCity(event.target.value)}
+                  placeholder="Екатеринбург, ул. Ленина, 1, кв. 2"
+                />
                 <FiMapPin aria-hidden="true" />
               </span>
             </label>
@@ -349,10 +375,15 @@ export default function CheckoutPage() {
             <div className="option-list">
               {paymentOptions.map((option) => (
                 <button
-                  className={`checkout-option ${selectedPaymentId === option.id ? "active" : ""}`}
+                  className={`checkout-option ${selectedPaymentId === option.id ? "active" : ""} ${option.disabled ? "disabled" : ""}`}
                   key={option.id}
                   type="button"
-                  onClick={() => setSelectedPaymentId(option.id)}
+                  disabled={option.disabled}
+                  onClick={() => {
+                    if (!option.disabled) {
+                      setSelectedPaymentId(option.id);
+                    }
+                  }}
                 >
                   <span className="radio-mark" aria-hidden="true" />
                   <span className="option-icon">
@@ -361,8 +392,13 @@ export default function CheckoutPage() {
                   <span className="option-content">
                     <strong>{option.title}</strong>
                     <small>{option.description}</small>
+                    {option.disabledReason && (
+                      <small>{option.disabledReason}</small>
+                    )}
                   </span>
-                  {option.commission && <span className="option-badge">{option.commission}</span>}
+                  {option.commission && (
+                    <span className="option-badge">{option.commission}</span>
+                  )}
                 </button>
               ))}
             </div>
@@ -371,11 +407,16 @@ export default function CheckoutPage() {
               <input
                 type="checkbox"
                 checked={isAgreementAccepted}
-                onChange={(event) => setIsAgreementAccepted(event.target.checked)}
+                onChange={(event) =>
+                  setIsAgreementAccepted(event.target.checked)
+                }
               />
               <span>
-                Я согласен с <Link href="/profile">условиями Пользовательского соглашения</Link> и{" "}
-                <Link href="/profile">Политикой конфиденциальности</Link>
+                Я согласен с{" "}
+                <Link href="/profile">
+                  условиями Пользовательского соглашения
+                </Link>{" "}
+                и <Link href="/profile">Политикой конфиденциальности</Link>
               </span>
             </label>
           </section>
@@ -396,22 +437,41 @@ export default function CheckoutPage() {
                 return (
                   <article className="order-item" key={rowKey}>
                     <div className="order-item-image">
-                      <Image src={productImage} alt={item.product.name} width={76} height={76} unoptimized />
+                      <Image
+                        src={productImage}
+                        alt={item.product.name}
+                        width={76}
+                        height={76}
+                        unoptimized
+                      />
                     </div>
                     <div className="order-item-info">
                       <h3>{item.product.name}</h3>
-                      {item.selectedColor && <span>Цвет: {colorNames[item.selectedColor] || item.selectedColor}</span>}
-                      {item.selectedSize && <span>Размер: {item.selectedSize}</span>}
+                      {item.selectedColor && (
+                        <span>
+                          Цвет:{" "}
+                          {colorNames[item.selectedColor] || item.selectedColor}
+                        </span>
+                      )}
+                      {item.selectedSize && (
+                        <span>Размер: {item.selectedSize}</span>
+                      )}
                       <span>{item.quantity} шт.</span>
                     </div>
-                    <strong>{formatPrice(item.product.price * item.quantity)}</strong>
+                    <strong>
+                      {formatPrice(item.product.price * item.quantity)}
+                    </strong>
                   </article>
                 );
               })}
             </div>
 
             <div className="promo-row">
-              <input value={promoCode} onChange={(event) => setPromoCode(event.target.value)} placeholder="Промокод" />
+              <input
+                value={promoCode}
+                onChange={(event) => setPromoCode(event.target.value)}
+                placeholder="Промокод"
+              />
               <button type="button">Применить</button>
             </div>
 
@@ -428,7 +488,8 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <span>
-                  Скидка {isStudent ? `(Студент ${STUDENT_DISCOUNT_PERCENT}%)` : ""}
+                  Скидка{" "}
+                  {isStudent ? `(Студент ${STUDENT_DISCOUNT_PERCENT}%)` : ""}
                 </span>
                 <strong>- {formatPrice(discount)}</strong>
               </div>
@@ -439,12 +500,19 @@ export default function CheckoutPage() {
               <strong>{formatPrice(totalToPay)}</strong>
             </div>
 
-            <button className="pay-button" type="button" disabled={!isAgreementAccepted || status !== "authenticated"}>
+            <button
+              className="pay-button"
+              type="button"
+              disabled={!isAgreementAccepted || status !== "authenticated"}
+            >
               <FiLock aria-hidden="true" />
               Перейти к оплате
             </button>
 
-            <p className="payment-note">Нажимая на кнопку, вы переходите к безопасной оплате и подтверждаете заказ</p>
+            <p className="payment-note">
+              Нажимая на кнопку, вы переходите к безопасной оплате и
+              подтверждаете заказ
+            </p>
           </section>
 
           <section className="checkout-card benefits-card">

@@ -225,6 +225,16 @@
     &.active {
       box-shadow: 0 0 0 1px var(--catalog-accent-border);
     }
+
+    &.disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+
+      &:hover {
+        border-color: var(--border-soft);
+        background: transparent;
+      }
+    }
   }
 
   .radio-mark {
@@ -233,17 +243,17 @@
     border: 1px solid var(--text-muted);
     border-radius: 50%;
     position: relative;
+  }
 
-    .active & {
-      border-color: var(--catalog-accent);
+  .checkout-option.active .radio-mark {
+    border-color: var(--catalog-accent);
 
-      &::after {
-        content: "";
-        position: absolute;
-        inset: 4px;
-        border-radius: 50%;
-        background: var(--catalog-accent);
-      }
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      background: var(--catalog-accent);
     }
   }
 

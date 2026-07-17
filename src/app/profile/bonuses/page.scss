@@ -143,7 +143,7 @@
 
   .level-block a {
     margin-top: auto;
-    
+
     &:hover {
       color: #93c5fd;
     }
@@ -362,28 +362,53 @@
 
     &.green {
       border-color: rgba(74, 222, 128, 0.15);
-      .benefit-status, .benefit-icon, a { color: #4ade80; }
-      .benefit-status { background-color: rgba(74, 222, 128, 0.05); }
+      .benefit-status,
+      .benefit-icon,
+      a {
+        color: #4ade80;
+      }
+      .benefit-status {
+        background-color: rgba(74, 222, 128, 0.05);
+      }
     }
 
     &.purple {
       border-color: rgba(192, 132, 252, 0.15);
-      .benefit-status, .benefit-icon, a { color: #c084fc; }
-      .benefit-status { background-color: rgba(192, 132, 252, 0.05); }
+      .benefit-status,
+      .benefit-icon,
+      a {
+        color: #c084fc;
+      }
+      .benefit-status {
+        background-color: rgba(192, 132, 252, 0.05);
+      }
     }
 
     &.blue {
       border-color: rgba(96, 165, 250, 0.15);
-      .benefit-status, .benefit-icon, a { color: #60a5fa; }
-      .benefit-status { background-color: rgba(96, 165, 250, 0.05); }
+      .benefit-status,
+      .benefit-icon,
+      a {
+        color: #60a5fa;
+      }
+      .benefit-status {
+        background-color: rgba(96, 165, 250, 0.05);
+      }
     }
 
     &.yellow {
       border-color: rgba(245, 158, 11, 0.15);
-      .benefit-status, .benefit-icon, a { color: #f59e0b; }
-      .benefit-status { background-color: rgba(245, 158, 11, 0.05); }
+      .benefit-status,
+      .benefit-icon,
+      a {
+        color: #f59e0b;
+      }
+      .benefit-status {
+        background-color: rgba(245, 158, 11, 0.05);
+      }
     }
-  }.specials-grid {
+  }
+  .specials-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
@@ -423,12 +448,17 @@
     }
   }
 
+  .double-bonus-special,
+  .hoodie-special {
+    overflow: visible;
+  }
+
   .double-bonus-visual {
     position: absolute;
-    right: 2rem;
+    right: 0.5rem;
     top: 50%;
-    width: 140px;
-    height: 140px;
+    width: 176px;
+    height: 176px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -443,18 +473,19 @@
 
   .hoodie-visual {
     position: absolute;
-    right: 1.5rem;
-    top: 50%;
-    width: 200px;
-    height: 200px;
+    right: -4.2rem;
+    top: -1.4rem;
+    bottom: 0;
+    width: 385px;
+    height: auto;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    transform: translateY(-50%);
+    overflow: hidden;
 
     img {
       width: 100%;
-      height: 100%;
+      height: auto;
       object-fit: contain;
     }
   }
@@ -511,7 +542,11 @@
     .special-card,
     .bonus-faq {
       background:
-        linear-gradient(135deg, rgba(139, 233, 253, 0.05), rgba(139, 233, 253, 0) 60%),
+        linear-gradient(
+          135deg,
+          rgba(139, 233, 253, 0.05),
+          rgba(139, 233, 253, 0) 60%
+        ),
         var(--bg-card);
     }
   }
@@ -566,19 +601,21 @@
     }
 
     .double-bonus-visual {
-      right: 1rem;
+      right: -0.35rem;
       top: auto;
-      bottom: 1rem;
-      width: 86px;
-      height: 86px;
+      bottom: -0.5rem;
+      width: 112px;
+      height: 112px;
       font-size: 2rem;
       transform: none;
     }
 
     .hoodie-visual {
-      right: 0.5rem;
-      width: 118px;
-      height: 106px;
+      right: -0.45rem;
+      bottom: 0;
+      top: -1rem;
+      width: 152px;
+      height: auto;
     }
   }
 }
