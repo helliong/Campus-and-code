@@ -159,23 +159,6 @@ function BonusIcon({ name }: { name: string }) {
   );
 }
 
-function GiftIllustration() {
-  return (
-    <div className="bonus-gift-visual" aria-hidden="true">
-      <svg viewBox="0 0 170 130">
-        <path className="gift-box" d="M34 58h88v56H34z" />
-        <path className="gift-lid" d="M25 42h106v22H25z" />
-        <path className="gift-ribbon" d="M70 42h17v72H70z" />
-        <path className="gift-ribbon" d="M25 58h106v9H25z" />
-        <path className="gift-bow" d="M71 42H50c-11 0-17-11-9-18 14-12 28 1 30 18Z" />
-        <path className="gift-bow" d="M87 42h21c11 0 17-11 9-18-14-12-28 1-30 18Z" />
-        <circle className="gift-coin" cx="124" cy="88" r="25" />
-        <path className="gift-star" d="m124 73 4.2 8.5 9.4 1.4-6.8 6.6 1.6 9.3-8.4-4.4-8.4 4.4 1.6-9.3-6.8-6.6 9.4-1.4L124 73Z" />
-      </svg>
-    </div>
-  );
-}
-
 function DoubleBonusVisual() {
   return (
     <div className="double-bonus-visual" aria-hidden="true">
@@ -259,7 +242,6 @@ export default function ProfileBonusesPage() {
           </Link>
         </div>
 
-        <GiftIllustration />
       </section>
 
       <section className="bonus-section">

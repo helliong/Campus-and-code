@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import "./page.scss";
 
 const accrualMethods = [
@@ -213,12 +214,19 @@ export default function BonusRulesPage() {
 
       <section className="rules-hero-card">
         <div>
-          <h3>Бонусы - это наша благодарность вам</h3>
+          <h3>Бонусы — это наша благодарность вам</h3>
           <p>Покупайте, участвуйте в акциях и получайте бонусы.</p>
           <p>1 бонус = 1 ₽.</p>
           <p>Оплачивайте до 50% от суммы заказа бонусами.</p>
         </div>
-        <GiftIllustration />
+        <Image
+          src="/bonuses.png"
+          alt="Бонусы"
+          width={200}
+          height={200}
+          className="rules-gift"
+          style={{ objectFit: "contain" }}
+        />
       </section>
 
       <section className="rules-section">
