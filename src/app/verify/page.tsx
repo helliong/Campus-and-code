@@ -36,6 +36,7 @@ export default function VerifyPage() {
   const uploadFile = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("purpose", "verification-document");
     const res = await fetch("/api/upload", { method: "POST", body: formData });
     if (!res.ok) throw new Error("Ошибка загрузки файла");
     const data = await res.json();
