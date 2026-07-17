@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import Link from "next/link";
+import ProfilePageHeader from "@/components/ProfilePageHeader";
 import ProfileSidebar from "@/components/ProfileSidebar";
 import "./layout.scss";
 
@@ -15,16 +15,7 @@ export default function ProfileLayout({
 }) {
   return (
     <main className="profile-layout-container">
-      <nav className="breadcrumbs" aria-label="Хлебные крошки">
-        <Link href="/">Главная</Link>
-        <span className="separator">&gt;</span>
-        <span className="current">Профиль</span>
-      </nav>
-
-      <div className="profile-header">
-        <h1>Профиль</h1>
-        <p className="subtitle">Управляйте своими данными, заказами и настройками</p>
-      </div>
+      <ProfilePageHeader />
 
       <div className="profile-grid">
         <ProfileSidebar />

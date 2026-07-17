@@ -42,3 +42,6 @@ next-env.d.ts
 
 # trash files/mockups
 /trash/
+
+# local uploaded files
+/public/uploads/
