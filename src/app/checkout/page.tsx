@@ -29,6 +29,7 @@ type UserProfile = {
   email?: string | null;
   phone?: string | null;
   role?: string | null;
+  bonusBalance?: number | null;
 };
 
 type DeliveryOption = {
@@ -48,6 +49,12 @@ type PaymentOption = {
   icon: "card" | "phone";
   disabled?: boolean;
   disabledReason?: string;
+};
+
+type PromoCodeRule = {
+  code: string;
+  discountPercent: number;
+  minOrderTotal?: number;
 };
 
 const colorNames: Record<string, string> = {
@@ -110,8 +117,25 @@ const paymentOptions: PaymentOption[] = [
   },
 ];
 
+const promoCodeRules: PromoCodeRule[] = [
+  {
+    code: "CAMPUS10",
+    discountPercent: 10,
+    minOrderTotal: 1_000,
+  },
+  {
+    code: "CODE5",
+    discountPercent: 5,
+  },
+];
+
 function formatPrice(price: number) {
   return `${price.toLocaleString("ru-RU")} ₽`;
+}
+
+function getPromoCodeRule(code: string) {
+  const normalizedCode = code.trim().toUpperCase();
+  return promoCodeRules.find((rule) => rule.code === normalizedCode) ?? null;
 }
 
 function getCartItemImage(item: CartItem) {
@@ -159,6 +183,11 @@ export default function CheckoutPage() {
   const [city, setCity] = useState("Екатеринбург");
   const [comment, setComment] = useState("");
   const [promoCode, setPromoCode] = useState("");
+  const [appliedPromoCode, setAppliedPromoCode] = useState("");
+  const [promoMessage, setPromoMessage] = useState("");
+  const [bonusAmount, setBonusAmount] = useState("");
+  const [appliedBonusAmount, setAppliedBonusAmount] = useState(0);
+  const [bonusMessage, setBonusMessage] = useState("");
   const [isAgreementAccepted, setIsAgreementAccepted] = useState(true);
 
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
@@ -171,7 +200,30 @@ export default function CheckoutPage() {
   const isStudent =
     session?.user?.role === "STUDENT" || profile?.role === "STUDENT";
   const discount = isStudent ? getStudentDiscountAmount(cartTotal) : 0;
-  const totalToPay = cartTotal + selectedDelivery.price - discount;
+  const availableBonusBalance = profile?.bonusBalance ?? 0;
+  const appliedPromoRule = appliedPromoCode
+    ? getPromoCodeRule(appliedPromoCode)
+    : null;
+  const productsTotalAfterDiscount = Math.max(cartTotal - discount, 0);
+  const promoDiscount = appliedPromoRule
+    ? Math.floor(
+        (productsTotalAfterDiscount * appliedPromoRule.discountPercent) / 100,
+      )
+    : 0;
+  const maxBonusAmount = Math.min(
+    availableBonusBalance,
+    Math.max(productsTotalAfterDiscount - promoDiscount, 0),
+  );
+  const bonusDiscount = Math.min(appliedBonusAmount, maxBonusAmount);
+  const totalToPay = Math.max(
+    productsTotalAfterDiscount -
+      promoDiscount -
+      bonusDiscount +
+      selectedDelivery.price,
+    0,
+  );
+  const isPromoApplied = appliedPromoCode !== "";
+  const isBonusApplied = bonusDiscount > 0;
   const isProfileLoading =
     status === "authenticated" && profileLoadState === "idle";
 
@@ -209,6 +261,97 @@ export default function CheckoutPage() {
       isMounted = false;
     };
   }, [status]);
+
+  useEffect(() => {
+    if (appliedBonusAmount > maxBonusAmount) {
+      setAppliedBonusAmount(maxBonusAmount);
+    }
+  }, [appliedBonusAmount, maxBonusAmount]);
+
+  const handlePromoCodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPromoCode(event.target.value.toUpperCase());
+    setPromoMessage("");
+  };
+
+  const handleApplyPromoCode = () => {
+    const normalizedCode = promoCode.trim().toUpperCase();
+
+    if (!normalizedCode) {
+      setAppliedPromoCode("");
+      setPromoMessage("Введите промокод");
+      return;
+    }
+
+    const rule = getPromoCodeRule(normalizedCode);
+
+    if (!rule) {
+      setAppliedPromoCode("");
+      setPromoMessage("Промокод не найден или уже не действует");
+      return;
+    }
+
+    if (rule.minOrderTotal && cartTotal < rule.minOrderTotal) {
+      setAppliedPromoCode("");
+      setPromoMessage(
+        `Промокод действует на заказы от ${formatPrice(rule.minOrderTotal)}`,
+      );
+      return;
+    }
+
+    setPromoCode(normalizedCode);
+    setAppliedPromoCode(normalizedCode);
+    setPromoMessage(`Промокод применен: скидка ${rule.discountPercent}%`);
+  };
+
+  const handleBonusAmountChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setBonusAmount(event.target.value.replace(/\D/g, ""));
+    setBonusMessage("");
+  };
+
+  const handleApplyBonusAmount = () => {
+    const amount = Number(bonusAmount);
+
+    if (status !== "authenticated") {
+      setAppliedBonusAmount(0);
+      setBonusMessage("Войдите в аккаунт, чтобы списать бонусы");
+      return;
+    }
+
+    if (!bonusAmount) {
+      setAppliedBonusAmount(0);
+      setBonusMessage("Введите количество бонусов");
+      return;
+    }
+
+    if (!Number.isInteger(amount) || amount <= 0) {
+      setAppliedBonusAmount(0);
+      setBonusMessage("Введите целое количество бонусов больше 0");
+      return;
+    }
+
+    if (availableBonusBalance <= 0) {
+      setAppliedBonusAmount(0);
+      setBonusMessage("На бонусном счете нет доступных бонусов");
+      return;
+    }
+
+    if (amount > availableBonusBalance) {
+      setAppliedBonusAmount(0);
+      setBonusMessage(`Доступно только ${formatPrice(availableBonusBalance)}`);
+      return;
+    }
+
+    if (amount > maxBonusAmount) {
+      setAppliedBonusAmount(0);
+      setBonusMessage(`Можно списать не больше ${formatPrice(maxBonusAmount)}`);
+      return;
+    }
+
+    setAppliedBonusAmount(amount);
+    setBonusMessage(`Будет списано ${formatPrice(amount)}`);
+  };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let input = e.target.value.replace(/\D/g, "");
@@ -466,13 +609,55 @@ export default function CheckoutPage() {
               })}
             </div>
 
-            <div className="promo-row">
-              <input
-                value={promoCode}
-                onChange={(event) => setPromoCode(event.target.value)}
-                placeholder="Промокод"
-              />
-              <button type="button">Применить</button>
+            <div className="discount-controls">
+              <div className="discount-field">
+                <div className="promo-row">
+                  <input
+                    value={promoCode}
+                    onChange={handlePromoCodeChange}
+                    placeholder="Промокод"
+                  />
+                  <button type="button" onClick={handleApplyPromoCode}>
+                    Применить
+                  </button>
+                </div>
+                {promoMessage && (
+                  <p
+                    className={`field-message ${
+                      isPromoApplied ? "success" : "error"
+                    }`}
+                  >
+                    {promoMessage}
+                  </p>
+                )}
+              </div>
+
+              <div className="discount-field">
+                <div className="promo-row">
+                  <input
+                    value={bonusAmount}
+                    onChange={handleBonusAmountChange}
+                    inputMode="numeric"
+                    placeholder="Списать бонусы"
+                  />
+                  <button type="button" onClick={handleApplyBonusAmount}>
+                    Списать
+                  </button>
+                </div>
+                <p className="bonus-hint">
+                  Доступно: {formatPrice(availableBonusBalance)}. Можно
+                  списать: {formatPrice(maxBonusAmount)}
+                </p>
+                {bonusMessage && (
+                  <p
+                    className={`field-message ${
+                      isBonusApplied ? "success" : "error"
+                    }`}
+                  >
+                    {bonusMessage}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="summary-lines">
@@ -493,6 +678,18 @@ export default function CheckoutPage() {
                 </span>
                 <strong>- {formatPrice(discount)}</strong>
               </div>
+              {promoDiscount > 0 && (
+                <div>
+                  <span>Промокод {appliedPromoCode}</span>
+                  <strong>- {formatPrice(promoDiscount)}</strong>
+                </div>
+              )}
+              {bonusDiscount > 0 && (
+                <div>
+                  <span>Бонусы</span>
+                  <strong>- {formatPrice(bonusDiscount)}</strong>
+                </div>
+              )}
             </div>
 
             <div className="checkout-total">

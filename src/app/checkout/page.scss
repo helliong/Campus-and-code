@@ -434,11 +434,23 @@
     }
   }
 
+  .discount-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin: 1.45rem 0 1.2rem;
+  }
+
+  .discount-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
   .promo-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.75rem;
-    margin: 1.45rem 0 1.2rem;
 
     button {
       min-height: 48px;
@@ -456,6 +468,26 @@
         color: var(--primary-text);
         background: var(--primary);
       }
+    }
+  }
+
+  .field-message,
+  .bonus-hint {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .bonus-hint {
+    color: var(--text-secondary);
+  }
+
+  .field-message {
+    &.success {
+      color: #22c55e;
+    }
+
+    &.error {
+      color: #ef4444;
     }
   }
 
