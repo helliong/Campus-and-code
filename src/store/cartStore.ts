@@ -25,7 +25,7 @@ type CartState = {
   clearCart: () => void;
 };
 
-function getCartTotal(items: CartItem[]) {
+export function getCartTotal(items: CartItem[]) {
   return items
     .filter((item) => item.isSelected !== false)
     .reduce((total, item) => total + item.product.price * item.quantity, 0);

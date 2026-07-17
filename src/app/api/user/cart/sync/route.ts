@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { filterValidCartItems, mergeCartItems } from "@/lib/cartSync";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -26,31 +27,7 @@ export async function POST(req: Request) {
         select: { id: true }
       });
       const validLocalProductIds = new Set(existingProducts.map(p => p.id));
-      
-      const validLocalCart = localCart.filter(i => validLocalProductIds.has(i.productId));
-
-      const mergedCart = [...dbCartItems];
-
-      for (const localItem of validLocalCart) {
-        const existingDbItemIndex = mergedCart.findIndex(dbItem => 
-          dbItem.productId === localItem.productId && 
-          dbItem.selectedSize === (localItem.selectedSize || null) && 
-          dbItem.selectedColor === (localItem.selectedColor || null)
-        );
-
-        if (existingDbItemIndex > -1) {
-          mergedCart[existingDbItemIndex].quantity += localItem.quantity;
-        } else {
-          mergedCart.push({
-            id: 'new',
-            userId: session.user.id,
-            productId: localItem.productId,
-            quantity: localItem.quantity,
-            selectedSize: localItem.selectedSize || null,
-            selectedColor: localItem.selectedColor || null,
-          });
-        }
-      }
+      const mergedCart = mergeCartItems(dbCartItems, localCart, validLocalProductIds, session.user.id);
 
       await prisma.cartItem.deleteMany({ where: { userId: session.user.id } });
       if (mergedCart.length > 0) {
@@ -82,7 +59,7 @@ export async function POST(req: Request) {
           select: { id: true }
         });
         const validLocalProductIds = new Set(existingProducts.map(p => p.id));
-        const validLocalCart = localCart.filter(i => validLocalProductIds.has(i.productId));
+        const validLocalCart = filterValidCartItems(localCart, validLocalProductIds);
 
         if (validLocalCart.length > 0) {
           await prisma.cartItem.createMany({

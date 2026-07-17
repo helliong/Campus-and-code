@@ -25,6 +25,14 @@ function syncFavoritesToDb(favorites: Product[]) {
   }).catch((error) => console.error("Sync error", error));
 }
 
+export function getFavoriteProductIds(favorites: Product[]) {
+  return favorites.map((product) => product.id);
+}
+
+export function isProductFavorite(favorites: Product[], productId: string) {
+  return favorites.some((product) => product.id === productId);
+}
+
 export const useFavoritesStore = create<FavoritesState>()(
   persist(
     (set, get) => ({
@@ -55,6 +63,6 @@ export const useFavoritesStore = create<FavoritesState>()(
   },
 
   isFavorite: (productId) => {
-    return get().favorites.some((product) => product.id === productId);
+    return isProductFavorite(get().favorites, productId);
   },
 }), { name: "favorites-storage" }));

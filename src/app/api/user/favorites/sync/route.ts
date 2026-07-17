@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import {
+  filterValidFavoriteIds,
+  getMissingFavoriteIds,
+  mergeFavoriteIds,
+} from "@/lib/favoritesSync";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -19,14 +24,17 @@ export async function POST(req: Request) {
       });
       const dbProductIds = dbFavorites.map(f => f.productId);
       
-      const combined = Array.from(new Set([...dbProductIds, ...localFavorites]));
-      const missing = combined.filter(id => !dbProductIds.includes(id));
+      const combined = mergeFavoriteIds(dbProductIds, localFavorites);
+      const missing = getMissingFavoriteIds(combined, dbProductIds);
       
       const existingProducts = await prisma.product.findMany({
         where: { id: { in: missing } },
         select: { id: true }
       });
-      const validMissingIds = existingProducts.map(p => p.id);
+      const validMissingIds = filterValidFavoriteIds(
+        missing,
+        new Set(existingProducts.map(p => p.id)),
+      );
       
       if (validMissingIds.length > 0) {
         await prisma.favorite.createMany({
@@ -49,7 +57,10 @@ export async function POST(req: Request) {
           where: { id: { in: localFavorites } },
           select: { id: true }
         });
-        const validLocalIds = existingProducts.map(p => p.id);
+        const validLocalIds = filterValidFavoriteIds(
+          localFavorites,
+          new Set(existingProducts.map(p => p.id)),
+        );
         
         if (validLocalIds.length > 0) {
           await prisma.favorite.createMany({
