@@ -41,9 +41,12 @@
 }
 
 .product-detail-page {
+  width: 100%;
   padding: 2rem 4rem;
   max-width: 1440px;
+  min-width: 0;
   margin: 0 auto;
+  overflow: hidden;
 
   * {
     box-sizing: border-box;
@@ -77,12 +80,17 @@
   }
 
   .product-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     display: flex;
     align-items: flex-start;
     gap: 3rem;
     margin-bottom: 4rem;
 
     .product-gallery {
+      max-width: 100%;
+      min-width: 0;
       display: flex;
       gap: 1.5rem;
       flex: 1;
@@ -211,6 +219,8 @@
     }
 
     .product-info {
+      max-width: 100%;
+      min-width: 0;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -912,9 +922,18 @@
   .product-detail-page {
     .product-main {
       flex-direction: column;
-    }
-    .product-gallery .thumbnails {
-      display: none;
+
+      .product-gallery {
+        width: 100%;
+
+        .thumbnails {
+          display: none;
+        }
+      }
+
+      .product-info {
+        width: 100%;
+      }
     }
   }
 }
@@ -927,19 +946,17 @@
       margin-bottom: 1rem;
 
       .breadcrumbs {
-        overflow-x: auto;
-        white-space: nowrap;
+        max-width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+        overflow: hidden;
+        white-space: normal;
         padding-bottom: 0.25rem;
-        scrollbar-width: none;
-
-        &::-webkit-scrollbar {
-          display: none;
-        }
 
         .current {
-          max-width: 44vw;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          max-width: 100%;
+          min-width: 0;
+          overflow-wrap: anywhere;
         }
       }
     }
@@ -949,7 +966,40 @@
       margin-bottom: 2.5rem;
 
       .product-gallery {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        flex-direction: column;
+        gap: 0.75rem;
+
+        .thumbnails {
+          order: 2;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          padding-bottom: 0.25rem;
+          display: flex;
+          flex-direction: row;
+          gap: 0.65rem;
+          overflow-x: auto;
+          scrollbar-width: none;
+
+          &::-webkit-scrollbar {
+            display: none;
+          }
+
+          .thumb {
+            width: 64px;
+            height: 64px;
+            flex: 0 0 64px;
+          }
+        }
+
         .main-image-container {
+          order: 1;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
           min-height: 0;
           aspect-ratio: 1 / 1;
           border-radius: 10px;
@@ -992,6 +1042,20 @@
       }
 
       .product-info {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+
+        h1,
+        h2,
+        h3,
+        p,
+        span,
+        a,
+        button {
+          overflow-wrap: anywhere;
+        }
+
         .info-top {
           align-items: flex-start;
           gap: 1rem;
@@ -1071,6 +1135,7 @@
           }
 
           .quantity-controls-main {
+            min-width: 0;
             height: 48px;
 
             .qty-btn {
@@ -1078,6 +1143,7 @@
             }
 
             .qty-value {
+              min-width: 0;
               font-size: 0.9rem;
             }
           }
@@ -1112,7 +1178,9 @@
     }
 
     .product-description-tabs {
-      max-width: none;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
       margin-bottom: 2.5rem;
       padding-top: 1.5rem;
 
@@ -1136,6 +1204,21 @@
     }
 
     .related-products {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+
+      .related-products-grid {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        grid-template-columns: minmax(0, 1fr) !important;
+
+        > * {
+          min-width: 0;
+        }
+      }
+
       h2 {
         font-size: 1.35rem;
       }
@@ -1177,6 +1260,9 @@
   }
 
   .size-guide-modal {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     max-height: none;
     padding: 1.25rem;
 
@@ -1228,6 +1314,12 @@
 
     .product-main {
       .product-gallery {
+        .thumbnails .thumb {
+          width: 58px;
+          height: 58px;
+          flex-basis: 58px;
+        }
+
         .main-image-container {
           .main-image-placeholder {
             padding-left: 12%;

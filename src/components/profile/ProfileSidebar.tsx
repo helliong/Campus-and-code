@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useState } from "react";
 import { FiHeadphones } from "react-icons/fi";
 import "./ProfileSidebar.scss";
 
 export default function ProfileSidebar() {
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: "/profile", label: "Обзор", icon: "M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" }, // Dashboard-like
@@ -22,19 +24,42 @@ export default function ProfileSidebar() {
     { href: "/profile/support", label: "Поддержка", icon: "M12 1a9 9 0 00-9 9v7a3 3 0 003 3h3v-8H5v-2a7 7 0 0114 0v2h-4v8h4v1h-7v2h7a3 3 0 003-3V10a9 9 0 00-9-9z" },
   ];
 
+  const isItemActive = (href: string) =>
+    href === "/profile" ? pathname === "/profile" : pathname?.startsWith(href);
+  const activeItem = navItems.find((item) => isItemActive(item.href)) || navItems[0];
+
   return (
     <aside className="profile-sidebar">
-      <nav className="profile-nav">
-        <ul>
+      <nav className={`profile-nav ${isMobileMenuOpen ? "is-open" : ""}`}>
+        <button
+          type="button"
+          className="profile-nav-toggle"
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="profile-navigation-list"
+          onClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
+        >
+          <span>
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="item-icon">
+              <path d={activeItem.icon} />
+            </svg>
+            {activeItem.label}
+          </span>
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="toggle-chevron">
+            <path d="M7 10l5 5 5-5z" />
+          </svg>
+        </button>
+
+        <ul id="profile-navigation-list">
           {navItems.map((item) => {
-            // For exact match on '/profile'
-            const isActive = item.href === '/profile' 
-              ? pathname === '/profile' 
-              : pathname?.startsWith(item.href);
+            const isActive = isItemActive(item.href);
 
             return (
               <li key={item.href}>
-                <Link href={item.href} className={`nav-item ${isActive ? "active" : ""}`}>
+                <Link
+                  href={item.href}
+                  className={`nav-item ${isActive ? "active" : ""}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <svg viewBox="0 0 24 24" aria-hidden="true" className="item-icon">
                     <path d={item.icon} />
                   </svg>

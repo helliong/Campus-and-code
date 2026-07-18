@@ -1,4 +1,7 @@
 .bonus-history-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -364,10 +367,15 @@
   }
 
   @media (max-width: 760px) {
+    gap: 1rem;
+
     .bonus-account-card,
     .bonus-history-panel,
     .bonus-info-card {
-      padding: 1.25rem;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      padding: 1rem;
     }
 
     .bonus-account-card,
@@ -377,13 +385,68 @@
       align-items: stretch;
     }
 
+    .bonus-account-card > *,
+    .bonus-history-panel > *,
+    .bonus-info-card > * {
+      max-width: 100%;
+      min-width: 0;
+    }
+
     .bonus-totals {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
 
       div {
-        padding-left: 0;
-        border-left: none;
+        padding: 0.85rem;
+        border: 1px solid var(--border-soft);
+        border-radius: 8px;
+        background: var(--bg-card-soft);
       }
+    }
+
+    .bonus-balance {
+      padding: 1rem;
+      border-radius: 8px;
+      background: var(--bg-card-soft);
+
+      strong {
+        font-size: 1.7rem;
+      }
+    }
+
+    .account-user {
+      align-items: flex-start;
+
+      > div:last-child {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+    }
+
+    .bonus-rules-link {
+      width: 100%;
+      min-height: 44px;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .bonus-tabs {
+      width: calc(100% + 2rem);
+      margin: 0 -1rem;
+      padding: 0 1rem 0.25rem;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .bonus-tab {
+      flex: 0 0 auto;
+      min-height: 44px;
     }
 
     .period-button {
@@ -391,11 +454,59 @@
     }
 
     .bonus-table-wrap {
-      overflow-x: auto;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      overflow: visible;
+      border: none;
     }
 
     .bonus-table {
-      min-width: 720px;
+      min-width: 0;
+      display: block;
+
+      thead {
+        display: none;
+      }
+
+      tbody {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      tr {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        display: block;
+        overflow: hidden;
+        border: 1px solid var(--border-soft);
+        border-radius: 8px;
+        background: var(--bg-card-soft);
+      }
+
+      td,
+      tbody tr:last-child td {
+        padding: 0.75rem;
+        display: grid;
+        grid-template-columns: minmax(100px, 0.7fr) minmax(0, 1fr);
+        gap: 0.75rem;
+        border-bottom: 1px solid var(--border-soft);
+        text-align: right;
+        overflow-wrap: anywhere;
+
+        &::before {
+          content: attr(data-label);
+          color: var(--text-secondary);
+          font-size: 0.8rem;
+          font-weight: 500;
+          text-align: left;
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
     }
 
     .bonus-empty-state {
@@ -412,6 +523,53 @@
       right: 1rem;
       width: 92px;
       height: 78px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .bonus-account-card {
+      gap: 1rem;
+    }
+
+    .account-avatar {
+      width: 52px;
+      height: 52px;
+      flex-basis: 52px;
+      font-size: 1.1rem;
+    }
+
+    .bonus-totals {
+      grid-template-columns: 1fr;
+    }
+
+    .bonus-table td,
+    .bonus-table tbody tr:last-child td {
+      grid-template-columns: 1fr;
+      gap: 0.3rem;
+      text-align: left;
+    }
+
+    .bonus-empty-state {
+      min-height: 0;
+      padding: 1rem;
+    }
+
+    .bonus-info-card {
+      padding-bottom: 1rem;
+    }
+
+    .bonus-gift {
+      display: none;
+    }
+
+    h2,
+    h3,
+    p,
+    span,
+    strong,
+    a,
+    li {
+      overflow-wrap: anywhere;
     }
   }
 }

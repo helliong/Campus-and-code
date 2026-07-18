@@ -520,4 +520,121 @@
       }
     }
   }
+
+  @media (max-width: 760px) {
+    gap: 1rem;
+
+    .user-info-card,
+    .balances-card,
+    .stats-card,
+    .recent-orders-section {
+      padding: 1rem;
+    }
+
+    .user-info-card {
+      align-items: flex-start;
+
+      .avatar-section {
+        width: 100%;
+        min-width: 0;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 1rem;
+
+        .avatar-circle {
+          width: 80px;
+          height: 80px;
+          font-size: 2rem;
+        }
+
+        .user-details,
+        .edit-form-container,
+        .input-group,
+        input {
+          width: 100%;
+          min-width: 0;
+        }
+
+        .edit-actions button {
+          flex: 1 1 0;
+          min-height: 44px;
+        }
+      }
+    }
+
+    .balances-card {
+      align-items: stretch;
+      flex-direction: column;
+      gap: 1rem;
+
+      .balance-divider {
+        width: 100%;
+        height: 1px;
+      }
+
+      .balance-item {
+        .balance-link {
+          min-height: 44px;
+          display: inline-flex;
+          align-items: center;
+        }
+      }
+    }
+
+    .stats-card {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem 0.75rem;
+
+      .stat-item {
+        min-width: 0;
+        gap: 0.65rem;
+
+        .stat-icon-wrapper {
+          width: 36px;
+          height: 36px;
+          flex: 0 0 36px;
+        }
+      }
+    }
+
+    .recommended-section {
+      > h3 {
+        font-size: 1.35rem;
+      }
+
+      .carousel-container {
+        padding-top: 0.25rem;
+
+        .recommendations-grid {
+          width: calc(100vw - 1.5rem);
+          margin-right: -0.75rem;
+          margin-left: -0.75rem;
+          padding: 0.75rem;
+          gap: 1rem;
+          scroll-padding-left: 0.75rem;
+          scroll-snap-type: x proximity;
+
+          > * {
+            flex-basis: min(76vw, 230px);
+            scroll-snap-align: start;
+          }
+        }
+
+        .carousel-nav-btn {
+          display: none;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 420px) {
+    .stats-card {
+      grid-template-columns: 1fr;
+    }
+
+    .user-info-card .avatar-section .edit-actions {
+      width: 100%;
+      flex-direction: column;
+    }
+  }
 }

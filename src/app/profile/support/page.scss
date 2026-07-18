@@ -373,12 +373,34 @@
 
     .support-submit {
       width: 100%;
+      min-height: 44px;
+    }
+
+    .attachment-button {
+      min-height: 44px;
+    }
+
+    .contact-row {
+      min-height: 52px;
+      padding: 0.45rem 0.2rem;
     }
   }
 
   @media (max-width: 430px) {
     .support-category-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .support-category {
+      min-height: 96px;
+    }
+
+    .contact-row {
+      grid-template-columns: 24px minmax(0, 1fr);
+
+      em {
+        display: none;
+      }
     }
   }
 }

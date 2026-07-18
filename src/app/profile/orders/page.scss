@@ -495,6 +495,8 @@
   }
 
   @media (max-width: 760px) {
+    gap: 1rem;
+
     .orders-heading-card,
     .orders-toolbar,
     .order-card-header,
@@ -504,7 +506,12 @@
 
     .orders-heading-card,
     .orders-panel {
-      padding: 1.25rem;
+      padding: 1rem;
+    }
+
+    .orders-heading-card h2 {
+      font-size: 1.45rem;
+      line-height: 1.25;
     }
 
     .catalog-link,
@@ -542,6 +549,50 @@
       a,
       button {
         flex: 1 1 140px;
+        min-height: 44px;
+      }
+    }
+
+    .orders-tabs {
+      width: calc(100% + 2rem);
+      margin: 0 -1rem;
+      padding: 0 1rem 0.25rem;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .orders-tab {
+      flex: 0 0 auto;
+      min-height: 44px;
+    }
+
+    .order-card {
+      padding: 1rem;
+    }
+
+    .order-status {
+      align-self: flex-start;
+    }
+  }
+
+  @media (max-width: 430px) {
+    .summary-card {
+      padding: 1rem;
+    }
+
+    .order-actions {
+      align-items: stretch;
+      flex-direction: column;
+
+      a,
+      button {
+        width: 100%;
+        flex-basis: auto;
       }
     }
   }

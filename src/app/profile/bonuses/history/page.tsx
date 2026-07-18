@@ -169,14 +169,14 @@ export default function BonusHistoryPage() {
             <tbody>
               {bonusOperations.map((operation) => (
                 <tr key={operation.id}>
-                  <td>{operation.createdAt}</td>
-                  <td>
+                  <td data-label="Дата и время">{operation.createdAt}</td>
+                  <td data-label="Описание">
                     <strong>{operation.description}</strong>
                     <span>{operation.details}</span>
                   </td>
-                  <td>{operation.type}</td>
-                  <td>{formatBonusAmount(operation.amount)}</td>
-                  <td>{formatBonusAmount(operation.balanceAfter)}</td>
+                  <td data-label="Тип операции">{operation.type}</td>
+                  <td data-label="Сумма">{formatBonusAmount(operation.amount)}</td>
+                  <td data-label="Баланс после">{formatBonusAmount(operation.balanceAfter)}</td>
                 </tr>
               ))}
             </tbody>

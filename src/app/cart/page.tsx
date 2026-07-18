@@ -12,7 +12,7 @@ import ProductCard from "@/components/product/ProductCard";
 import { Product } from "@/types";
 import { getPublicProducts } from "@/actions/products";
 import { getStudentDiscountAmount, STUDENT_DISCOUNT_PERCENT } from "@/lib/cart/pricing";
-import { getProductImagesForColor } from "@/lib/products/productVariants";
+import { getProductImagesForColor, hasVariantStock } from "@/lib/products/productVariants";
 import "./page.scss";
 
 const colorNames: Record<string, string> = {
@@ -73,6 +73,7 @@ export default function CartPage() {
     useState(false);
   const { data: session, status } = useSession();
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
+  const [recommendedSizes, setRecommendedSizes] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -109,12 +110,16 @@ export default function CartPage() {
     ? []
     : recommendations.slice(0, 2);
 
-  const handleRecommendedCart = (product: Product) => {
+  const handleRecommendedCart = (product: Product, selectedSize?: string) => {
+    const selectedColor = product.availableColors?.[0];
+
+    if (!hasVariantStock(product, selectedColor, selectedSize)) return;
+
     addToCart(
       product,
       1,
-      product.availableSizes?.[0],
-      product.availableColors?.[0],
+      selectedSize,
+      selectedColor,
     );
   };
 
@@ -339,7 +344,7 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    <span className="cart-price">
+                    <span className="cart-price" data-label="Цена">
                       {formatPrice(item.product.price)}
                     </span>
 
@@ -378,7 +383,7 @@ export default function CartPage() {
                       </button>
                     </div>
 
-                    <span className="cart-row-total">
+                    <span className="cart-row-total" data-label="Итого">
                       {formatPrice(rowTotal)}
                     </span>
 
@@ -551,7 +556,12 @@ export default function CartPage() {
             <section className="cart-recommendations">
               <h2>Вам может понравиться</h2>
               <div className="recommendation-list">
-                {sidebarRecommendations.map((product) => (
+                {sidebarRecommendations.map((product) => {
+                  const selectedColor = product.availableColors?.[0];
+                  const selectedSize = recommendedSizes[product.id] || product.availableSizes?.[0];
+                  const canAddRecommendation = hasVariantStock(product, selectedColor, selectedSize);
+
+                  return (
                   <article className="recommendation-card" key={product.id}>
                     <button
                       className={`favorite-btn ${isFavorite(product.id) ? "active" : ""}`}
@@ -585,12 +595,41 @@ export default function CartPage() {
                     >
                       {product.name}
                     </Link>
+                    {product.availableSizes && product.availableSizes.length > 0 && (
+                      <div className="recommendation-size-picker">
+                        <span>Размер</span>
+                        <div>
+                          {product.availableSizes.map((size) => {
+                            const isAvailable = hasVariantStock(product, selectedColor, size);
+
+                            return (
+                              <button
+                                key={size}
+                                type="button"
+                                className={selectedSize === size ? "active" : ""}
+                                disabled={!isAvailable}
+                                onClick={() =>
+                                  setRecommendedSizes((sizes) => ({
+                                    ...sizes,
+                                    [product.id]: size,
+                                  }))
+                                }
+                                aria-label={`Выбрать размер ${size}`}
+                              >
+                                {size}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                     <div className="recommendation-footer">
                       <strong>{formatPrice(product.price)}</strong>
                       <button
                         className="recommendation-cart"
                         type="button"
-                        onClick={() => handleRecommendedCart(product)}
+                        onClick={() => handleRecommendedCart(product, selectedSize)}
+                        disabled={!canAddRecommendation}
                         aria-label="Добавить в корзину"
                       >
                         <svg
@@ -609,7 +648,8 @@ export default function CartPage() {
                       </button>
                     </div>
                   </article>
-                ))}
+                  );
+                })}
               </div>
             </section>
           )}

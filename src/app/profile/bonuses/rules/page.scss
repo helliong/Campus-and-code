@@ -1,4 +1,7 @@
 .bonus-rules-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -322,13 +325,23 @@
   }
 
   @media (max-width: 760px) {
+    gap: 1rem;
+
     .rules-heading,
     .rules-hero-card {
-      padding: 1.25rem;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      padding: 1rem;
     }
 
     .rules-hero-card {
-      padding-bottom: 8rem;
+      min-height: 230px;
+      padding-bottom: 6.5rem;
+
+      h3 {
+        font-size: 1.1rem;
+      }
     }
 
     .rules-gift {
@@ -343,7 +356,21 @@
     .accrual-grid,
     .usage-steps,
     .rules-cta {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
       grid-template-columns: 1fr;
+    }
+
+    .rules-section,
+    .accrual-card,
+    .usage-step,
+    .important-rules,
+    .important-rule,
+    .rules-cta,
+    .rules-cta > * {
+      max-width: 100%;
+      min-width: 0;
     }
 
     .usage-steps::before {
@@ -365,6 +392,94 @@
       a {
         width: 100%;
       }
+    }
+
+    .accrual-card {
+      min-height: 0;
+      padding: 1rem;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      align-items: center;
+      justify-content: initial;
+      gap: 0.25rem 0.85rem;
+      text-align: left;
+
+      h4,
+      p,
+      span {
+        grid-column: 2;
+        margin: 0;
+      }
+
+      h4 {
+        align-self: end;
+      }
+
+      p {
+        margin-top: 0.2rem;
+      }
+
+      span {
+        margin-top: 0.35rem;
+      }
+    }
+
+    .accrual-icon {
+      width: 42px;
+      height: 42px;
+      grid-row: 1 / 4;
+    }
+
+    .important-rule {
+      padding: 1rem;
+    }
+
+    .usage-step {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 0.25rem 0.85rem;
+
+      .step-number {
+        grid-row: 1 / 3;
+      }
+
+      h4,
+      p {
+        grid-column: 2;
+        margin: 0;
+      }
+
+      p {
+        margin-top: 0.25rem;
+      }
+    }
+  }
+
+  @media (max-width: 430px) {
+    .rules-hero-card {
+      min-height: 0;
+      padding-bottom: 1rem;
+    }
+
+    .rules-gift {
+      display: none;
+    }
+
+    .important-rule {
+      gap: 0.75rem;
+    }
+
+    .rules-cta {
+      padding: 1rem;
+    }
+
+    h2,
+    h3,
+    h4,
+    p,
+    span,
+    a {
+      overflow-wrap: anywhere;
     }
   }
 }
