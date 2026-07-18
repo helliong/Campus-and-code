@@ -443,14 +443,12 @@
 
   /* Recommended Block */
   .recommended-section {
-    margin-top: 5rem;
-    margin-left: calc(-280px - 2rem);
-    width: calc(100% + 280px + 2rem);
+    margin-top: 1rem;
+    width: 100%;
+    min-width: 0;
 
     @media (max-width: 900px) {
-      margin-top: 1rem;
-      margin-left: 0;
-      width: 100%;
+      margin-top: 0;
     }
 
     > h3 {

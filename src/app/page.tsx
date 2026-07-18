@@ -56,12 +56,12 @@ export default async function Home() {
   const dbProducts = await getPublicProducts();
   const displayProducts = dbProducts.slice(0, 10); // show top 10
 
-  const dynamicCategories = categories.map(cat => {
+  const dynamicCategories = categories.map((cat) => {
     let count = 0;
     if (cat.id === "universities") {
-      count = dbProducts.filter(p => p.universityId).length;
+      count = dbProducts.filter((p) => p.universityId).length;
     } else {
-      count = dbProducts.filter(p => p.category === cat.id).length;
+      count = dbProducts.filter((p) => p.category === cat.id).length;
     }
     return { ...cat, count };
   });
@@ -197,7 +197,7 @@ export default async function Home() {
               <ProductCard key={product.id} product={product as any} />
             ))
           ) : (
-            <p style={{ color: 'var(--text-secondary)' }}>Товары не найдены.</p>
+            <p style={{ color: "var(--text-secondary)" }}>Товары не найдены.</p>
           )}
         </div>
       </section>
@@ -223,7 +223,7 @@ export default async function Home() {
             <span className="promo-banner-button">Смотреть коллекции</span>
           </span>
         </Link>
-        <Link href="/catalog?category=teams" className="promo-banner">
+        <Link href="/it-merch" className="promo-banner">
           <Image
             src="/banner-two.webp"
             alt="IT-коллекции для разработчиков"

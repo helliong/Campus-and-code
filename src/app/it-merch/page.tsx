@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { FiChevronRight, FiGrid, FiList, FiChevronDown, FiCheck, FiRefreshCw } from 'react-icons/fi';
 import { LuShirt, LuBook, LuCoffee, LuShoppingBag, LuMonitor } from 'react-icons/lu';
 import { PiHoodie, PiBaseballCap, PiSticker } from 'react-icons/pi';
-import { getPublicProducts } from '../../actions/products';
+import { getPublicItMerchProducts } from '../../actions/products';
 import ProductCard from '../../components/ProductCard';
+import type { Product } from '../../types';
 import '../catalog/page.scss';
 import './page.scss';
 
@@ -55,12 +56,12 @@ export default function ITMerchPage() {
   const [draftFilters, setDraftFilters] = useState<FilterState>(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(defaultFilters);
   
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [maxPrice, setMaxPrice] = useState(5000);
 
   React.useEffect(() => {
-    getPublicProducts().then(data => {
+    getPublicItMerchProducts().then(data => {
       setProducts(data);
       const newMax = data.length > 0 ? Math.max(...data.map(p => p.price)) : 5000;
       setMaxPrice(newMax);
@@ -311,7 +312,7 @@ export default function ITMerchPage() {
               <p style={{ padding: '2rem' }}>Загрузка товаров...</p>
             ) : filteredProducts.length > 0 ? (
               filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product as any} />
+                <ProductCard key={product.id} product={product} />
               ))
             ) : (
               <p style={{ padding: '2rem' }}>Товары не найдены.</p>

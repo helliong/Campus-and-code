@@ -15,6 +15,22 @@ export async function getPublicProducts() {
   })) as unknown as Product[];
 }
 
+export async function getPublicItMerchProducts() {
+  const products = await prisma.product.findMany({
+    where: {
+      isPublished: true,
+      universityId: null,
+    },
+    include: { university: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return products.map((product) => ({
+    ...product,
+    description: product.description || "",
+  })) as unknown as Product[];
+}
+
 export async function getPublicUniversities() {
   const unis = await prisma.university.findMany({
     include: {
