@@ -209,7 +209,6 @@
         font-weight: 600;
         color: var(--text-main);
         margin-bottom: 0.5rem;
-
       }
 
       .balance-link {
@@ -340,7 +339,11 @@
       .dark-theme & {
         border-color: var(--catalog-accent-border);
         background:
-          linear-gradient(135deg, rgba(139, 233, 253, 0.08), rgba(139, 233, 253, 0) 68%),
+          linear-gradient(
+            135deg,
+            rgba(139, 233, 253, 0.08),
+            rgba(139, 233, 253, 0) 68%
+          ),
           var(--bg-card);
       }
     }
@@ -440,16 +443,17 @@
 
   /* Recommended Block */
   .recommended-section {
-    margin-top: 1rem;
+    margin-top: 5rem;
     margin-left: calc(-280px - 2rem);
     width: calc(100% + 280px + 2rem);
 
     @media (max-width: 900px) {
+      margin-top: 1rem;
       margin-left: 0;
       width: 100%;
     }
 
-    h3 {
+    > h3 {
       font-family: var(--font-heading);
       font-size: 1.6rem;
       font-weight: 500;

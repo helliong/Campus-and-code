@@ -14,6 +14,11 @@ const pageMeta: Record<string, { breadcrumb: string; title: string; subtitle: st
     title: "Мои заказы",
     subtitle: "Следите за статусами заказов и историей покупок",
   },
+  "/profile/support": {
+    breadcrumb: "Поддержка",
+    title: "Поддержка",
+    subtitle: "Мы всегда на связи и готовы помочь с любыми вопросами",
+  },
   "/profile/bonuses/history": {
     breadcrumb: "История бонусов",
     title: "История бонусов",

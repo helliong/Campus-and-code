@@ -11,8 +11,6 @@ import { useFavorites } from '../context/FavoritesContext';
 import { getProductImagesForColor, hasVariantStock } from '../lib/productVariants';
 import './ProductCard.scss';
 
-import './ProductCard.scss';
-
 const categoryNames: Record<string, string> = {
   hoodie: 'Худи',
   tshirt: 'Футболки',

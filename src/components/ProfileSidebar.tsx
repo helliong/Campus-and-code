@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { FiHeadphones } from "react-icons/fi";
 import "./ProfileSidebar.scss";
 
 export default function ProfileSidebar() {
@@ -18,6 +19,7 @@ export default function ProfileSidebar() {
     { href: "/profile/notifications", label: "Подписки и уведомления", icon: "M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z" },
     { href: "/profile/bonuses", label: "Бонусы и скидки", icon: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-7-2h5v-2h-5v2zm-5-4h10v-2H7v2zm0-4h10V7H7v2z" }, // Changed to list since there's no generic bonus icon, but will adjust
     { href: "/profile/security", label: "Безопасность", icon: "M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" },
+    { href: "/profile/support", label: "Поддержка", icon: "M12 1a9 9 0 00-9 9v7a3 3 0 003 3h3v-8H5v-2a7 7 0 0114 0v2h-4v8h4v1h-7v2h7a3 3 0 003-3V10a9 9 0 00-9-9z" },
   ];
 
   return (
@@ -51,6 +53,25 @@ export default function ProfileSidebar() {
           </button>
         </div>
       </nav>
+
+      <div className="sidebar-support">
+        <h2>Нужна помощь?</h2>
+        <p>Свяжитесь с нашей поддержкой, если у вас возникли вопросы по заказу.</p>
+        <Link
+          href="/profile/support#chat"
+          className="support-link"
+          onClick={(event) => {
+            if (pathname !== "/profile/support") return;
+
+            event.preventDefault();
+            window.history.replaceState(null, "", "/profile/support#chat");
+            window.dispatchEvent(new Event("support-chat:open"));
+          }}
+        >
+          <FiHeadphones aria-hidden="true" />
+          Связаться в чате
+        </Link>
+      </div>
     </aside>
   );
 }
