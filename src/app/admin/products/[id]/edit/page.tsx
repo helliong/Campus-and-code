@@ -12,6 +12,11 @@ import {
 import { variantKey } from "@/lib/products/productVariants";
 
 type ImagesByColor = Record<string, string[]>;
+type UniversityOption = {
+  id: string;
+  shortName: string;
+  name: string;
+};
 type ProductVariantForm = {
   color?: string;
   size?: string;
@@ -47,6 +52,7 @@ export default function EditProductPage() {
   const [category, setCategory] = useState("hoodie");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [universities, setUniversities] = useState<UniversityOption[]>([]);
 
   const sizesList = ["S", "M", "L", "XL"];
   const colorsList = [
@@ -73,6 +79,15 @@ export default function EditProductPage() {
 
   const getColorLabel = (colorId: string) =>
     colorsList.find((color) => color.id === colorId)?.label || colorId;
+
+  useEffect(() => {
+    if (session?.user?.role !== "SUPERADMIN") return;
+
+    fetch("/api/admin/universities")
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((data: UniversityOption[]) => setUniversities(data))
+      .catch(() => setUniversities([]));
+  }, [session]);
 
   useEffect(() => {
     if (!id) return;
@@ -732,14 +747,11 @@ export default function EditProductPage() {
             <label>Университет (для СуперАдмина)</label>
             <select name="universityId" defaultValue={initialData?.universityId || ""}>
               <option value="">Без университета (Глобальный)</option>
-              <option value="mgu">МГУ</option>
-              <option value="mifi">МИФИ</option>
-              <option value="spbgu">СПбГУ</option>
-              <option value="vshe">ВШЭ</option>
-              <option value="mfti">МФТИ</option>
-              <option value="urfu">УрФУ</option>
-              <option value="tgu">ТГУ</option>
-              <option value="rudn">РУДН</option>
+              {universities.map((university) => (
+                <option key={university.id} value={university.id}>
+                  {university.shortName || university.name}
+                </option>
+              ))}
             </select>
           </div>
         )}

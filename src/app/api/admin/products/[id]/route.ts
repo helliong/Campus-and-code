@@ -63,9 +63,22 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const universityIdToUse = session.user.role === "UNIVERSITY_ADMIN" 
-      ? session.user.universityId 
-      : data.universityId || existingProduct.universityId;
+    const universityIdToUse = session.user.role === "UNIVERSITY_ADMIN"
+      ? session.user.universityId
+      : data.universityId === undefined
+        ? existingProduct.universityId
+        : data.universityId || null;
+
+    if (universityIdToUse) {
+      const universityExists = await prisma.university.findUnique({
+        where: { id: universityIdToUse },
+        select: { id: true },
+      });
+
+      if (!universityExists) {
+        return NextResponse.json({ error: "Selected university does not exist" }, { status: 400 });
+      }
+    }
 
     const slug = data.slug || existingProduct.slug;
     const variants = normalizeProductVariants(data.variants);

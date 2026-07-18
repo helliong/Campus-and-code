@@ -52,6 +52,18 @@ export async function POST(request: Request) {
     const universityIdToUse = session.user.role === "UNIVERSITY_ADMIN" 
       ? session.user.universityId 
       : data.universityId || null;
+
+    if (universityIdToUse) {
+      const universityExists = await prisma.university.findUnique({
+        where: { id: universityIdToUse },
+        select: { id: true },
+      });
+
+      if (!universityExists) {
+        return NextResponse.json({ error: "Selected university does not exist" }, { status: 400 });
+      }
+    }
+
     const variants = normalizeProductVariants(data.variants);
     const stockCount = getProductTotalStock(variants, data.stockCount);
 
