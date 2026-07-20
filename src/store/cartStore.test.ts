@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CartItem, Product } from "@/types";
-import { getCartTotal, getSerializedCartItems } from "./cartStore";
+import { getCartTotal, getResetCartState, getSerializedCartItems } from "./cartStore";
 
 function product(id: string, price: number): Product {
   return {
@@ -43,4 +43,12 @@ test("cart serialization keeps product id, quantity and selected variant", () =>
       selectedColor: "black",
     },
   ]);
+});
+
+test("cart reset removes persisted user items without database sync", () => {
+  assert.deepEqual(getResetCartState(), {
+    items: [],
+    cartTotal: 0,
+    isDbSyncEnabled: false,
+  });
 });

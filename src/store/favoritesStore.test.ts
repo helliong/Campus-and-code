@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Product } from "@/types";
-import { getFavoriteProductIds, isProductFavorite } from "./favoritesStore";
+import { getFavoriteProductIds, getResetFavoritesState, isProductFavorite } from "./favoritesStore";
 
 function product(id: string): Product {
   return {
@@ -26,4 +26,11 @@ test("favorite lookup returns true only for existing products", () => {
 
   assert.equal(isProductFavorite(favorites, "two"), true);
   assert.equal(isProductFavorite(favorites, "missing"), false);
+});
+
+test("favorites reset removes persisted user products without database sync", () => {
+  assert.deepEqual(getResetFavoritesState(), {
+    favorites: [],
+    isDbSyncEnabled: false,
+  });
 });

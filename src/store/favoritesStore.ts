@@ -12,6 +12,7 @@ type FavoritesState = {
   addFavorite: (product: Product) => void;
   removeFavorite: (productId: string) => void;
   isFavorite: (productId: string) => boolean;
+  clearFavorites: () => void;
 };
 
 function syncFavoritesToDb(favorites: Product[]) {
@@ -31,6 +32,10 @@ export function getFavoriteProductIds(favorites: Product[]) {
 
 export function isProductFavorite(favorites: Product[], productId: string) {
   return favorites.some((product) => product.id === productId);
+}
+
+export function getResetFavoritesState() {
+  return { favorites: [], isDbSyncEnabled: false };
 }
 
 export const useFavoritesStore = create<FavoritesState>()(
@@ -64,5 +69,9 @@ export const useFavoritesStore = create<FavoritesState>()(
 
   isFavorite: (productId) => {
     return isProductFavorite(get().favorites, productId);
+  },
+
+  clearFavorites: () => {
+    set(getResetFavoritesState());
   },
 }), { name: "favorites-storage" }));

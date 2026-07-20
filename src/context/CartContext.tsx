@@ -41,17 +41,25 @@ function mapDbCartItems(cartItems: DbCartItem[], localItems: CartItem[]): CartIt
 function CartSync() {
   const { status } = useSession();
   const isInitialSyncDone = useRef(false);
+  const wasAuthenticated = useRef(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      useCartStore.getState().setDbSyncEnabled(false);
+      if (wasAuthenticated.current) {
+        useCartStore.getState().resetCart();
+      } else {
+        useCartStore.getState().setDbSyncEnabled(false);
+      }
+      wasAuthenticated.current = false;
       isInitialSyncDone.current = false;
       return;
     }
 
     if (status !== "authenticated" || isInitialSyncDone.current) return;
 
+    wasAuthenticated.current = true;
     isInitialSyncDone.current = true;
+    let isCancelled = false;
     const currentItems = useCartStore.getState().items;
 
     const isAlreadySynced = useCartStore.getState().isDbSyncEnabled;
@@ -66,15 +74,21 @@ function CartSync() {
     })
       .then((response) => response.json())
       .then((data: { cartItems?: DbCartItem[] }) => {
+        if (isCancelled) return;
         if (data.cartItems) {
           useCartStore.getState().setItems(mapDbCartItems(data.cartItems, currentItems));
         }
         useCartStore.getState().setDbSyncEnabled(true);
       })
       .catch((error) => {
+        if (isCancelled) return;
         console.error("Cart sync error", error);
         useCartStore.getState().setDbSyncEnabled(true);
       });
+
+    return () => {
+      isCancelled = true;
+    };
   }, [status]);
 
   return null;

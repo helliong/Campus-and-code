@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
 import type { IconType } from "react-icons";
+import { signOutAndClearUserState } from "@/lib/auth/signOut";
 import {
   FiActivity,
   FiArchive,
@@ -90,7 +90,7 @@ export default function AdminSidebar() {
       <button
         type="button"
         className="admin-logout"
-        onClick={() => signOut({ callbackUrl: "/" })}
+        onClick={() => void signOutAndClearUserState()}
       >
         <FiLogOut aria-hidden="true" />
         <span>Выйти</span>

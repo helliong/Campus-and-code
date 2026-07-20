@@ -26,6 +26,7 @@ type CartState = {
   toggleItemSelection: (productId: string, size?: string, color?: string) => void;
   toggleAllSelection: (isSelected: boolean) => void;
   clearCart: () => void;
+  resetCart: () => void;
 };
 
 export function getCartTotal(items: CartItem[]) {
@@ -85,6 +86,10 @@ function buildCartState(items: CartItem[]) {
     items,
     cartTotal: getCartTotal(items),
   };
+}
+
+export function getResetCartState() {
+  return { ...buildCartState([]), isDbSyncEnabled: false };
 }
 
 import { useFavoritesStore } from "./favoritesStore";
@@ -173,6 +178,10 @@ export const useCartStore = create<CartState>()(
   clearCart: () => {
     set(buildCartState([]));
     if (get().isDbSyncEnabled) syncCartToDb([]);
+  },
+
+  resetCart: () => {
+    set(getResetCartState());
   },
 }), { name: "cart-storage" }));
 
