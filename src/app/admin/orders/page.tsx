@@ -3,7 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/database/prisma";
 import { isOrderCancellable } from "@/lib/orders/orderCancellation";
+import { isOrderDeliverable } from "@/lib/orders/orderDelivery";
 import AdminCancelOrderButton from "./AdminCancelOrderButton";
+import AdminDeliverOrderButton from "./AdminDeliverOrderButton";
 import "./page.scss";
 
 const statusLabels: Record<string, string> = {
@@ -68,7 +70,16 @@ export default async function AdminOrdersPage() {
                     </td>
                     <td>{order.total.toLocaleString("ru-RU")} ₽</td>
                     <td>{dateFormatter.format(order.createdAt)}</td>
-                    <td>{isOrderCancellable(order.status) && <AdminCancelOrderButton orderId={order.id} orderNumber={order.number} />}</td>
+                    <td>
+                      <div className="admin-order-actions">
+                        {isOrderDeliverable(order.status) && (
+                          <AdminDeliverOrderButton orderId={order.id} orderNumber={order.number} />
+                        )}
+                        {isOrderCancellable(order.status) && (
+                          <AdminCancelOrderButton orderId={order.id} orderNumber={order.number} />
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

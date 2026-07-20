@@ -9,6 +9,9 @@ type ConfirmDialogProps = {
   title: string;
   description: string;
   confirmLabel: string;
+  cancelLabel?: string;
+  loadingLabel?: string;
+  variant?: "danger" | "success";
   isLoading?: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -19,6 +22,9 @@ export default function ConfirmDialog({
   title,
   description,
   confirmLabel,
+  cancelLabel = "Оставить заказ",
+  loadingLabel,
+  variant = "danger",
   isLoading = false,
   onClose,
   onConfirm,
@@ -50,7 +56,7 @@ export default function ConfirmDialog({
       }}
     >
       <div
-        className="confirm-dialog"
+        className={`confirm-dialog confirm-dialog--${variant}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -59,15 +65,19 @@ export default function ConfirmDialog({
         <button className="confirm-dialog-close" type="button" aria-label="Закрыть" disabled={isLoading} onClick={onClose}>×</button>
         <div className="confirm-dialog-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="m19 6-1 14H6L5 6" /><path d="M10 10v6M14 10v6" />
+            {variant === "success" ? (
+              <path d="m5 12 4 4L19 6" />
+            ) : (
+              <><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="m19 6-1 14H6L5 6" /><path d="M10 10v6M14 10v6" /></>
+            )}
           </svg>
         </div>
         <h2 id={titleId}>{title}</h2>
         <p id={descriptionId}>{description}</p>
         <div className="confirm-dialog-actions">
-          <button type="button" className="secondary" disabled={isLoading} onClick={onClose} autoFocus>Оставить заказ</button>
-          <button type="button" className="danger" disabled={isLoading} onClick={onConfirm}>
-            {isLoading ? "Отменяем…" : confirmLabel}
+          <button type="button" className="secondary" disabled={isLoading} onClick={onClose} autoFocus>{cancelLabel}</button>
+          <button type="button" className={variant} disabled={isLoading} onClick={onConfirm}>
+            {isLoading ? loadingLabel || (variant === "danger" ? "Отменяем…" : "Обновляем…") : confirmLabel}
           </button>
         </div>
       </div>

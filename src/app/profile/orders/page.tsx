@@ -246,94 +246,112 @@ export default function ProfileOrdersPage() {
                 : statusMeta[order.status];
 
             return (
-              <article className="order-card" key={order.id}>
-                <div className="order-card-header">
-                  <div>
+              <details
+                className="order-card"
+                key={order.id}
+                open={!["delivered", "cancelled"].includes(order.status)}
+              >
+                <summary className="order-card-summary">
+                  <div className="order-card-title">
                     <span className="order-number">Заказ №{order.orderNumber}</span>
                     <span className="order-date">{order.date}</span>
                   </div>
                   <span className={`order-status ${meta.className}`}>
                     {meta.label}
                   </span>
-                </div>
+                  <span className="order-card-chevron" aria-hidden="true">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </span>
+                </summary>
 
-                <div className="order-progress" aria-label="Статус доставки">
-                  {["Оформлен", "Собирается", "В пути", "Получен"].map(
-                    (step, index) => (
-                      <div
-                        className={`progress-step ${
-                          meta.step >= index ? "completed" : ""
-                        }`}
-                        key={step}
-                      >
-                        <span className="progress-dot" />
-                        <span className="progress-label">{step}</span>
-                      </div>
-                    ),
-                  )}
-                </div>
-
-                <div className="order-products">
-                  {order.products.map((product) => {
-                    const productContent = <>
-                      <div className="product-image">
-                        <Image
-                          src={product.imageUrl}
-                          alt={product.name}
-                          fill
-                          sizes="64px"
-                        />
-                      </div>
-                      <div>
-                        <strong>{product.name}</strong>
-                        <span>
-                          {product.variant} · {product.quantity} шт.
-                        </span>
-                      </div>
-                    </>;
-
-                    return product.href ? (
-                      <Link className="order-product product-link" href={product.href} key={product.id}>
-                        {productContent}
-                      </Link>
-                    ) : (
-                      <div className="order-product" key={product.id}>{productContent}</div>
-                    );
-                  })}
-                </div>
-
-                <div className="order-card-footer">
-                  <div className="delivery-info">
-                    <span>{order.deliveryDate}</span>
-                    <p>{order.deliveryAddress}</p>
-                  </div>
-                  <div className="order-actions">
-                    <strong>{formatPrice(order.totalPrice)}</strong>
-                    <Link href={`/profile/orders/${order.id}`}>Подробнее</Link>
-                    {order.canPay && (
-                      <button
-                        type="button"
-                        className="pay-order-button"
-                        disabled={payingOrderId === order.id}
-                        onClick={() => void handlePayOrder(order)}
-                      >
-                        {payingOrderId === order.id ? "Открываем…" : "Оплатить"}
-                      </button>
+                <div className="order-card-content">
+                  <div className="order-progress" aria-label="Статус доставки">
+                    {["Оформлен", "Собирается", "В пути", "Получен"].map(
+                      (step, index) => (
+                        <div
+                          className={`progress-step ${
+                            meta.step >= index ? "completed" : ""
+                          }`}
+                          key={step}
+                        >
+                          <span className="progress-dot" />
+                          <span className="progress-label">{step}</span>
+                        </div>
+                      ),
                     )}
-                    {order.canCancel && (
-                      <button
-                        type="button"
-                        className="cancel-order-button"
-                        disabled={cancellingOrderId === order.id}
-                        onClick={() => setOrderToCancel(order)}
-                      >
-                        {cancellingOrderId === order.id ? "Отмена…" : "Отменить"}
-                      </button>
-                    )}
-                    <button type="button">Повторить</button>
+                  </div>
+
+                  <div className="order-products">
+                    {order.products.map((product) => {
+                      const productContent = <>
+                        <div className="product-image">
+                          <Image
+                            src={product.imageUrl}
+                            alt={product.name}
+                            fill
+                            sizes="64px"
+                          />
+                        </div>
+                        <div>
+                          <strong>{product.name}</strong>
+                          <span>
+                            {product.variant} · {product.quantity} шт.
+                          </span>
+                        </div>
+                      </>;
+
+                      return product.href ? (
+                        <Link className="order-product product-link" href={product.href} key={product.id}>
+                          {productContent}
+                        </Link>
+                      ) : (
+                        <div className="order-product" key={product.id}>{productContent}</div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="order-card-footer">
+                    <div className="delivery-info">
+                      <span>{order.deliveryDate}</span>
+                      <p>{order.deliveryAddress}</p>
+                    </div>
+                    <div className="order-actions">
+                      <strong>{formatPrice(order.totalPrice)}</strong>
+                      <Link href={`/profile/orders/${order.id}`}>Подробнее</Link>
+                      {order.canPay && (
+                        <button
+                          type="button"
+                          className="pay-order-button"
+                          disabled={payingOrderId === order.id}
+                          onClick={() => void handlePayOrder(order)}
+                        >
+                          {payingOrderId === order.id ? "Открываем…" : "Оплатить"}
+                        </button>
+                      )}
+                      {order.canCancel && (
+                        <button
+                          type="button"
+                          className="cancel-order-button"
+                          disabled={cancellingOrderId === order.id}
+                          onClick={() => setOrderToCancel(order)}
+                        >
+                          {cancellingOrderId === order.id ? "Отмена…" : "Отменить"}
+                        </button>
+                      )}
+                      <button type="button">Повторить</button>
+                    </div>
                   </div>
                 </div>
-              </article>
+              </details>
             );
             })
           ) : (
