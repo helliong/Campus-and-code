@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { filterValidCartItems, mergeCartItems } from "@/lib/cart/cartSync";
+import { filterValidCartItems, limitCartItemsToStock, mergeCartItems } from "@/lib/cart/cartSync";
 import { prisma } from "@/lib/database/prisma";
 
 export async function POST(req: Request) {
@@ -21,13 +21,16 @@ export async function POST(req: Request) {
         where: { userId: session.user.id }
       });
 
-      const localProductIds = localCart.map(i => i.productId);
+      const localProductIds = [...dbCartItems.map((item) => item.productId), ...localCart.map(i => i.productId)];
       const existingProducts = await prisma.product.findMany({
         where: { id: { in: localProductIds } },
-        select: { id: true }
+        select: { id: true, stockCount: true, inStock: true, variants: true }
       });
       const validLocalProductIds = new Set(existingProducts.map(p => p.id));
-      const mergedCart = mergeCartItems(dbCartItems, localCart, validLocalProductIds, session.user.id);
+      const mergedCart = limitCartItemsToStock(
+        mergeCartItems(dbCartItems, localCart, validLocalProductIds, session.user.id),
+        existingProducts,
+      );
 
       await prisma.cartItem.deleteMany({ where: { userId: session.user.id } });
       if (mergedCart.length > 0) {
@@ -56,10 +59,13 @@ export async function POST(req: Request) {
         const localProductIds = localCart.map(i => i.productId);
         const existingProducts = await prisma.product.findMany({
           where: { id: { in: localProductIds } },
-          select: { id: true }
+          select: { id: true, stockCount: true, inStock: true, variants: true }
         });
         const validLocalProductIds = new Set(existingProducts.map(p => p.id));
-        const validLocalCart = filterValidCartItems(localCart, validLocalProductIds);
+        const validLocalCart = limitCartItemsToStock(
+          filterValidCartItems(localCart, validLocalProductIds),
+          existingProducts,
+        );
 
         if (validLocalCart.length > 0) {
           await prisma.cartItem.createMany({
@@ -73,7 +79,11 @@ export async function POST(req: Request) {
           });
         }
       }
-      return NextResponse.json({ success: true }, { status: 200 });
+      const finalCartItems = await prisma.cartItem.findMany({
+        where: { userId: session.user.id },
+        include: { product: true },
+      });
+      return NextResponse.json({ success: true, cartItems: finalCartItems }, { status: 200 });
     }
 
     if (action === 'get') {

@@ -1,0 +1,99 @@
+.confirm-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(2, 10, 16, 0.76);
+  backdrop-filter: blur(7px);
+  animation: confirm-backdrop-in 0.18s ease-out;
+}
+
+.confirm-dialog {
+  position: relative;
+  width: min(100%, 440px);
+  padding: 2rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  color: var(--text-main);
+  background:
+    radial-gradient(circle at 0 0, rgba(239, 68, 68, 0.13), transparent 42%),
+    var(--bg-card);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+  animation: confirm-dialog-in 0.2s ease-out;
+
+  h2 {
+    margin: 1rem 0 0.55rem;
+    font-size: 1.45rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+}
+
+.confirm-dialog-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 34px;
+  height: 34px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--text-secondary);
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover { color: var(--text-main); background: var(--bg-card-soft); }
+}
+
+.confirm-dialog-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 15px;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+
+  svg { width: 27px; height: 27px; }
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.65rem;
+
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, background-color 0.15s, border-color 0.15s;
+
+    &:hover:not(:disabled) { transform: translateY(-1px); }
+    &:disabled { cursor: wait; opacity: 0.65; }
+  }
+
+  .secondary { border: 1px solid var(--border); color: var(--text-main); background: var(--bg-card-soft); }
+  .danger { border: 1px solid #dc2626; color: #fff; background: #dc2626; }
+  .danger:hover:not(:disabled) { border-color: #b91c1c; background: #b91c1c; }
+}
+
+@keyframes confirm-backdrop-in { from { opacity: 0; } }
+@keyframes confirm-dialog-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+
+@media (max-width: 520px) {
+  .confirm-dialog { padding: 1.5rem; }
+  .confirm-dialog-actions { flex-direction: column-reverse; }
+  .confirm-dialog-actions button { width: 100%; }
+}

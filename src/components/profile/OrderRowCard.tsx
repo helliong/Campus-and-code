@@ -6,7 +6,7 @@ export interface OrderRowProps {
   id: string;
   orderNumber: string;
   date: string;
-  status: "delivered" | "in_transit" | "cancelled";
+  status: "processing" | "delivered" | "in_transit" | "cancelled";
   itemCount: number;
   totalPrice: number;
   imageUrl: string;
@@ -27,6 +27,8 @@ export default function OrderRowCard({
 
   const getStatusDisplay = () => {
     switch (status) {
+      case "processing":
+        return { text: "Активен", className: "status-processing" };
       case "delivered":
         return { text: "Доставлен", className: "status-delivered" };
       case "in_transit":

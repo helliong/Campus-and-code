@@ -241,6 +241,11 @@
             &:hover {
               background-color: var(--bg-main);
             }
+
+            &:disabled {
+              cursor: not-allowed;
+              opacity: 0.4;
+            }
           }
 
           .qty-value {

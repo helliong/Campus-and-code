@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Product } from "@/types";
 import {
+  getProductAvailableStock,
   getAvailableSizesForColor,
   getProductImagesForColor,
   getVariantStock,
@@ -45,6 +46,13 @@ test("variant stock and availability use exact color and size combination", () =
   assert.equal(hasVariantStock(product, "black", "M"), false);
   assert.equal(hasVariantStock(product, "black", "L"), true);
   assert.equal(hasVariantStock({ ...product, variants: undefined, inStock: false }), false);
+});
+
+test("available stock uses the selected variant and product fallback", () => {
+  assert.equal(getProductAvailableStock(product, "black", "S"), 2);
+  assert.equal(getProductAvailableStock(product, "black", "M"), 0);
+  assert.equal(getProductAvailableStock(product, "white", "S"), 0);
+  assert.equal(getProductAvailableStock({ ...product, variants: undefined, stockCount: 1 }), 1);
 });
 
 test("available sizes exclude variants with zero stock", () => {

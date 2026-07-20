@@ -432,6 +432,10 @@
             &:hover {
               background: var(--product-soft-overlay);
             }
+            &:disabled {
+              cursor: not-allowed;
+              opacity: 0.4;
+            }
           }
 
           .qty-value {

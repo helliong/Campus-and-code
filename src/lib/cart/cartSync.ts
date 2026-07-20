@@ -10,6 +10,15 @@ export type DbCartSyncItem = CartSyncPayloadItem & {
   userId: string;
 };
 
+export type CartProductStock = {
+  id: string;
+  stockCount: number;
+  inStock: boolean;
+  variants: unknown;
+};
+
+type StockVariant = { color?: string; size?: string; stock?: number };
+
 function normalizeOption(value?: string | null) {
   return value || null;
 }
@@ -61,4 +70,28 @@ export function mergeCartItems(
   }
 
   return mergedCart;
+}
+
+export function limitCartItemsToStock<T extends CartSyncPayloadItem>(
+  cartItems: T[],
+  products: CartProductStock[],
+) {
+  const productsById = new Map(products.map((product) => [product.id, product]));
+
+  return cartItems.flatMap((item) => {
+    const product = productsById.get(item.productId);
+    if (!product || !product.inStock) return [];
+    const variants = Array.isArray(product.variants) ? product.variants as StockVariant[] : [];
+    const variant = variants.find(
+      (candidate) =>
+        normalizeOption(candidate.size) === normalizeOption(item.selectedSize)
+        && normalizeOption(candidate.color) === normalizeOption(item.selectedColor),
+    );
+    const availableStock = variants.length > 0
+      ? Math.max(0, Number(variant?.stock) || 0)
+      : Math.max(0, product.stockCount);
+    const quantity = Math.min(Math.max(0, Math.floor(Number(item.quantity) || 0)), availableStock);
+
+    return quantity > 0 ? [{ ...item, quantity }] : [];
+  });
 }

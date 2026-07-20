@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   filterValidCartItems,
   isSameCartVariant,
+  limitCartItemsToStock,
   mergeCartItems,
 } from "./cartSync";
 
@@ -86,5 +87,24 @@ test("api cart sync merges matching variants and appends new valid variants", ()
       selectedSize: "L",
       selectedColor: "black",
     },
+  ]);
+});
+
+test("api cart sync limits quantities to real product and variant stock", () => {
+  const limited = limitCartItemsToStock(
+    [
+      { productId: "plain", quantity: 3 },
+      { productId: "hoodie", quantity: 2, selectedColor: "black", selectedSize: "M" },
+      { productId: "hoodie", quantity: 1, selectedColor: "black", selectedSize: "L" },
+    ],
+    [
+      { id: "plain", stockCount: 1, inStock: true, variants: [] },
+      { id: "hoodie", stockCount: 5, inStock: true, variants: [{ color: "black", size: "M", stock: 1 }] },
+    ],
+  );
+
+  assert.deepEqual(limited, [
+    { productId: "plain", quantity: 1 },
+    { productId: "hoodie", quantity: 1, selectedColor: "black", selectedSize: "M" },
   ]);
 });

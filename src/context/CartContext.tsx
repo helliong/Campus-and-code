@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { CartItem, Product } from "@/types";
 import { getSerializedCartItems, useCartStore } from "@/store/cartStore";
+import { getProductAvailableStock } from "@/lib/products/productVariants";
 
 type DbCartItem = {
   productId: string;
@@ -14,20 +15,26 @@ type DbCartItem = {
 };
 
 function mapDbCartItems(cartItems: DbCartItem[], localItems: CartItem[]): CartItem[] {
-  return cartItems.map((dbItem) => {
+  return cartItems.flatMap((dbItem) => {
     const localItem = localItems.find(
       (item) =>
         item.product.id === dbItem.productId &&
         item.selectedSize === (dbItem.selectedSize || undefined) &&
         item.selectedColor === (dbItem.selectedColor || undefined)
     );
-    return {
+    const quantity = Math.min(
+      dbItem.quantity,
+      getProductAvailableStock(dbItem.product, dbItem.selectedColor || undefined, dbItem.selectedSize || undefined),
+    );
+    if (quantity <= 0) return [];
+
+    return [{
       product: dbItem.product,
-      quantity: dbItem.quantity,
+      quantity,
       selectedSize: dbItem.selectedSize || undefined,
       selectedColor: dbItem.selectedColor || undefined,
       isSelected: localItem && localItem.isSelected !== undefined ? localItem.isSelected : true,
-    };
+    }];
   });
 }
 

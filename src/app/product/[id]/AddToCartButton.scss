@@ -94,6 +94,11 @@
       }
     }
 
+    .qty-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+
     .favorite-btn {
       flex: 0 0 54px;
       display: flex;

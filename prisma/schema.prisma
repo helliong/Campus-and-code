@@ -20,24 +20,51 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum OrderStatus {
+  AWAITING_PAYMENT
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELED
+  PAYMENT_FAILED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  CANCELED
+}
+
+enum PaymentProvider {
+  YOOKASSA
+}
+
+enum CancellationInitiator {
+  CUSTOMER
+  STORE
+}
+
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  phone     String?
-  role      Role     @default(EXPLORER)
-  
+  id       String  @id @default(cuid())
+  email    String  @unique
+  password String
+  name     String?
+  phone    String?
+  role     Role    @default(EXPLORER)
+
   universityId String?
   university   University? @relation(fields: [universityId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  favorites Favorite[]
-  cartItems CartItem[]
+  favorites            Favorite[]
+  cartItems            CartItem[]
   verificationRequests VerificationRequest[]
-  auditLogs AuditLog[]
+  auditLogs            AuditLog[]
+  orders               Order[]
 }
 
 model RegistrationVerification {
@@ -53,64 +80,65 @@ model RegistrationVerification {
 }
 
 model University {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  name      String
-  shortName String
-  tone      String
-  mark      String
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  shortName    String
+  tone         String
+  mark         String
   emailDomains String[] @default([])
 
-  admins    User[]
-  products  Product[]
+  admins               User[]
+  products             Product[]
   verificationRequests VerificationRequest[]
 }
 
 model Product {
-  id              String   @id @default(cuid())
-  slug            String   @unique
-  sku             String?  @unique
-  name            String
-  description     String?
-  price           Int
-  oldPrice        Int?
-  imageUrl        String
-  images          String[] @default([])
-  imagesByColor   Json     @default("{}")
-  
-  category        String
-  badge           String?  
-  
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  sku           String?  @unique
+  name          String
+  description   String?
+  price         Int
+  oldPrice      Int?
+  imageUrl      String
+  images        String[] @default([])
+  imagesByColor Json     @default("{}")
+
+  category String
+  badge    String?
+
   availableSizes  String[]
   availableColors String[]
   materials       String[]
   tags            String[]
-  
-  stockCount      Int      @default(0)
-  variants        Json     @default("[]")
-  inStock         Boolean  @default(true)
-  
-  views           Int      @default(0)
-  isPublished     Boolean  @default(true)
-  
-  universityId    String?
-  university      University? @relation(fields: [universityId], references: [id])
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
 
-  favorites Favorite[]
-  cartItems CartItem[]
+  stockCount Int     @default(0)
+  variants   Json    @default("[]")
+  inStock    Boolean @default(true)
+
+  views       Int     @default(0)
+  isPublished Boolean @default(true)
+
+  universityId String?
+  university   University? @relation(fields: [universityId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  favorites  Favorite[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 }
 
 model Favorite {
   id        String @id @default(cuid())
   userId    String
   productId String
-  
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
   @@unique([userId, productId])
 }
 
@@ -121,9 +149,9 @@ model CartItem {
   quantity      Int
   selectedSize  String?
   selectedColor String?
-  
-  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId, selectedSize, selectedColor])
 }
@@ -137,8 +165,8 @@ model VerificationRequest {
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
 
-  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  university   University         @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
@@ -164,4 +192,76 @@ model AuditLog {
   @@index([action])
   @@index([section])
   @@index([universityId])
+}
+
+model Order {
+  id              String                 @id @default(cuid())
+  number          String                 @unique
+  userId          String
+  status          OrderStatus            @default(AWAITING_PAYMENT)
+  contactEmail    String
+  contactPhone    String
+  deliveryMethod  String
+  deliveryAddress String
+  deliveryPrice   Int
+  productsTotal   Int
+  studentDiscount Int                    @default(0)
+  promoCode       String?
+  promoDiscount   Int                    @default(0)
+  total           Int
+  currency        String                 @default("RUB")
+  comment         String?
+  canceledBy      CancellationInitiator?
+  paidAt          DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items    OrderItem[]
+  payments Payment[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  productId     String?
+  productName   String
+  productSku    String?
+  imageUrl      String
+  unitPrice     Int
+  quantity      Int
+  selectedSize  String?
+  selectedColor String?
+  lineTotal     Int
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id                 String          @id @default(cuid())
+  orderId            String
+  provider           PaymentProvider @default(YOOKASSA)
+  providerPaymentId  String?         @unique
+  idempotenceKey     String          @unique
+  status             PaymentStatus   @default(PENDING)
+  amount             Int
+  currency           String          @default("RUB")
+  confirmationUrl    String?
+  test               Boolean         @default(true)
+  cancellationReason String?
+  paidAt             DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@index([status, createdAt])
 }

@@ -28,6 +28,7 @@ import { useFavorites } from "../../../context/FavoritesContext";
 import { Product } from "../../../types";
 import {
   getAvailableSizesForColor,
+  getProductAvailableStock,
   getProductImagesForColor,
   hasVariantStock,
 } from "@/lib/products/productVariants";
@@ -117,6 +118,8 @@ export default function ProductClient({ product, initialVariant }: ProductClient
       item.selectedColor === colorState,
   );
   const quantity = cartItem ? cartItem.quantity : 0;
+  const availableStock = getProductAvailableStock(product, colorState, sizeState);
+  const isAtStockLimit = quantity >= availableStock;
 
   const handleIncrement = () => {
     if (!isSelectedVariantInStock) return;
@@ -305,7 +308,7 @@ export default function ProductClient({ product, initialVariant }: ProductClient
                 <div className="quantity-controls-main">
                   <button className="qty-btn" onClick={handleDecrement}>-</button>
                   <span className="qty-value">В корзине ({quantity} шт)</span>
-                  <button className="qty-btn" onClick={handleIncrement}>+</button>
+                  <button className="qty-btn" onClick={handleIncrement} disabled={isAtStockLimit} aria-label={isAtStockLimit ? "Достигнут доступный остаток" : "Увеличить количество"}>+</button>
                 </div>
               ) : (
                 <button className="add-to-cart-btn" onClick={handleAddToCart} disabled={!isSelectedVariantInStock}>

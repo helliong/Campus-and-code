@@ -12,7 +12,7 @@ import ProductCard from "@/components/product/ProductCard";
 import { Product } from "@/types";
 import { getPublicProducts } from "@/actions/products";
 import { getStudentDiscountAmount, STUDENT_DISCOUNT_PERCENT } from "@/lib/cart/pricing";
-import { getProductImagesForColor, hasVariantStock } from "@/lib/products/productVariants";
+import { getProductAvailableStock, getProductImagesForColor, hasVariantStock } from "@/lib/products/productVariants";
 import "./page.scss";
 
 const colorNames: Record<string, string> = {
@@ -369,6 +369,7 @@ export default function CartPage() {
                       <span>{item.quantity}</span>
                       <button
                         type="button"
+                        disabled={item.quantity >= getProductAvailableStock(item.product, item.selectedColor, item.selectedSize)}
                         onClick={() =>
                           updateQuantity(
                             item.product.id,
@@ -377,7 +378,7 @@ export default function CartPage() {
                             item.selectedColor,
                           )
                         }
-                        aria-label="Увеличить количество"
+                        aria-label={item.quantity >= getProductAvailableStock(item.product, item.selectedColor, item.selectedSize) ? "Достигнут доступный остаток" : "Увеличить количество"}
                       >
                         +
                       </button>

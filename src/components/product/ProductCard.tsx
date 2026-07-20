@@ -8,7 +8,7 @@ import { Product } from '@/types';
 import { generateSlug } from '@/lib/shared/utils';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
-import { getProductImagesForColor, hasVariantStock } from '@/lib/products/productVariants';
+import { getProductAvailableStock, getProductImagesForColor, hasVariantStock } from '@/lib/products/productVariants';
 import './ProductCard.scss';
 
 const categoryNames: Record<string, string> = {
@@ -57,6 +57,8 @@ export default function ProductCard({ product }: { product: Product }) {
     item.selectedColor === selectedColor
   );
   const quantity = isMounted && cartItem ? cartItem.quantity : 0;
+  const availableStock = getProductAvailableStock(product, selectedColor, selectedSize);
+  const isAtStockLimit = quantity >= availableStock;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -161,7 +163,7 @@ export default function ProductCard({ product }: { product: Product }) {
               <div className="quantity-controls compact">
                 <button className="qty-btn" onClick={handleDecrement}>-</button>
                 <span className="qty-value">{quantity}</span>
-                <button className="qty-btn" onClick={handleIncrement}>+</button>
+                <button className="qty-btn" onClick={handleIncrement} disabled={isAtStockLimit} aria-label={isAtStockLimit ? "Достигнут доступный остаток" : "Увеличить количество"}>+</button>
               </div>
             ) : (
               <button className="cart-icon-btn" onClick={handleAddToCart} aria-label="В корзину" disabled={!isSelectedVariantInStock}>
@@ -179,7 +181,7 @@ export default function ProductCard({ product }: { product: Product }) {
               <div className="quantity-controls">
                 <button className="qty-btn" onClick={handleDecrement}>-</button>
                 <span className="qty-value">{quantity} шт.</span>
-                <button className="qty-btn" onClick={handleIncrement}>+</button>
+                <button className="qty-btn" onClick={handleIncrement} disabled={isAtStockLimit} aria-label={isAtStockLimit ? "Достигнут доступный остаток" : "Увеличить количество"}>+</button>
               </div>
             ) : (
               <button className="view-btn" onClick={handleAddToCart} disabled={!isSelectedVariantInStock}>

@@ -23,14 +23,25 @@ export function getVariantStock(
   return variant?.stock;
 }
 
+export function getProductAvailableStock(
+  product: Product,
+  color?: string,
+  size?: string,
+) {
+  const variantStock = getVariantStock(product.variants, color, size);
+  if (variantStock !== undefined) return Math.max(0, variantStock);
+  if (product.variants?.length) return 0;
+  if (product.inStock === false) return 0;
+  if (typeof product.stockCount === "number") return Math.max(0, product.stockCount);
+  return Number.POSITIVE_INFINITY;
+}
+
 export function hasVariantStock(
   product: Product,
   color?: string,
   size?: string,
 ) {
-  const stock = getVariantStock(product.variants, color, size);
-
-  return stock === undefined ? product.inStock !== false : stock > 0;
+  return getProductAvailableStock(product, color, size) > 0;
 }
 
 export function getAvailableSizesForColor(product: Product, color?: string) {

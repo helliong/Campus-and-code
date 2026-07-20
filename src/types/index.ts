@@ -10,6 +10,7 @@ export interface Product {
   materials?: string[]; // e.g. ['Хлопок', 'Полиэстер']
   tags?: string[];
   inStock?: boolean;
+  stockCount?: number;
   universityId?: string | null;
   university?: {
     name: string;

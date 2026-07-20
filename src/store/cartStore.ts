@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { CartItem, Product } from "@/types";
+import { getProductAvailableStock } from "@/lib/products/productVariants";
 
 type CartSyncItem = {
   productId: string;
@@ -10,6 +11,8 @@ type CartSyncItem = {
   selectedSize?: string;
   selectedColor?: string;
 };
+
+type SyncedCartItem = CartSyncItem & { product: Product };
 
 type CartState = {
   items: CartItem[];
@@ -40,7 +43,10 @@ function serializeCart(items: CartItem[]): CartSyncItem[] {
   }));
 }
 
+let latestCartSyncRequest = 0;
+
 function syncCartToDb(items: CartItem[]) {
+  const requestId = ++latestCartSyncRequest;
   fetch("/api/user/cart/sync", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -48,7 +54,30 @@ function syncCartToDb(items: CartItem[]) {
       action: "save",
       localCart: serializeCart(items),
     }),
-  }).catch((error) => console.error("Sync error", error));
+  })
+    .then(async (response) => {
+      if (!response.ok) return;
+      const data = await response.json() as { cartItems?: SyncedCartItem[] };
+      if (!data.cartItems || requestId !== latestCartSyncRequest) return;
+      const currentItems = useCartStore.getState().items;
+      const syncedItems = data.cartItems.map((dbItem) => {
+        const currentItem = currentItems.find(
+          (item) =>
+            item.product.id === dbItem.productId
+            && item.selectedSize === (dbItem.selectedSize || undefined)
+            && item.selectedColor === (dbItem.selectedColor || undefined),
+        );
+        return {
+          product: dbItem.product,
+          quantity: dbItem.quantity,
+          selectedSize: dbItem.selectedSize || undefined,
+          selectedColor: dbItem.selectedColor || undefined,
+          isSelected: currentItem?.isSelected ?? true,
+        };
+      });
+      useCartStore.setState(buildCartState(syncedItems));
+    })
+    .catch((error) => console.error("Sync error", error));
 }
 
 function buildCartState(items: CartItem[]) {
@@ -83,13 +112,17 @@ export const useCartStore = create<CartState>()(
     const existingItemIndex = currentItems.findIndex(
       (item) => item.product.id === product.id && item.selectedSize === size && item.selectedColor === color,
     );
+    const availableStock = getProductAvailableStock(product, color, size);
+    const currentQuantity = existingItemIndex > -1 ? currentItems[existingItemIndex].quantity : 0;
+    const nextQuantity = Math.min(currentQuantity + Math.max(0, quantity), availableStock);
+    if (nextQuantity <= currentQuantity) return;
 
     const nextItems =
       existingItemIndex > -1
         ? currentItems.map((item, index) =>
-            index === existingItemIndex ? { ...item, quantity: item.quantity + quantity } : item,
+            index === existingItemIndex ? { ...item, quantity: nextQuantity } : item,
           )
-        : [...currentItems, { product, quantity, selectedSize: size, selectedColor: color, isSelected: true }];
+        : [...currentItems, { product, quantity: nextQuantity, selectedSize: size, selectedColor: color, isSelected: true }];
 
     set(buildCartState(nextItems));
     if (get().isDbSyncEnabled) syncCartToDb(nextItems);
@@ -102,14 +135,20 @@ export const useCartStore = create<CartState>()(
   },
 
   updateQuantity: (productId, quantity, size, color) => {
+    const currentItem = get().items.find(
+      (item) => item.product.id === productId && item.selectedSize === size && item.selectedColor === color,
+    );
+    const limitedQuantity = currentItem
+      ? Math.min(quantity, getProductAvailableStock(currentItem.product, color, size))
+      : quantity;
     const nextItems =
-      quantity <= 0
+      limitedQuantity <= 0
         ? get().items.filter(
             (item) => !(item.product.id === productId && item.selectedSize === size && item.selectedColor === color),
           )
         : get().items.map((item) =>
             item.product.id === productId && item.selectedSize === size && item.selectedColor === color
-              ? { ...item, quantity }
+              ? { ...item, quantity: limitedQuantity }
               : item,
           );
 

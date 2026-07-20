@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Product } from '../../../types';
 import { useCart } from '../../../context/CartContext';
 import { useFavorites } from '../../../context/FavoritesContext';
+import { getProductAvailableStock, hasVariantStock } from '@/lib/products/productVariants';
 import './AddToCartButton.scss';
 
 export default function AddToCartButton({ product }: { product: Product }) {
@@ -24,6 +25,9 @@ export default function AddToCartButton({ product }: { product: Product }) {
     item.selectedColor === selectedColor
   );
   const quantity = cartItem ? cartItem.quantity : 0;
+  const availableStock = getProductAvailableStock(product, selectedColor, selectedSize);
+  const isAtStockLimit = quantity >= availableStock;
+  const isAvailable = hasVariantStock(product, selectedColor, selectedSize);
 
   const handleAddToCart = () => {
     addToCart(product, 1, selectedSize, selectedColor);
@@ -87,11 +91,11 @@ export default function AddToCartButton({ product }: { product: Product }) {
           <div className="quantity-controls">
             <button className="qty-btn" onClick={handleDecrement}>-</button>
             <span className="qty-value">{quantity} шт.</span>
-            <button className="qty-btn" onClick={handleIncrement}>+</button>
+            <button className="qty-btn" onClick={handleIncrement} disabled={isAtStockLimit} aria-label={isAtStockLimit ? "Достигнут доступный остаток" : "Увеличить количество"}>+</button>
           </div>
         ) : (
-          <button className="add-to-cart-btn" onClick={handleAddToCart}>
-            Добавить в корзину
+          <button className="add-to-cart-btn" onClick={handleAddToCart} disabled={!isAvailable}>
+            {isAvailable ? "Добавить в корзину" : "Нет в наличии"}
           </button>
         )}
         

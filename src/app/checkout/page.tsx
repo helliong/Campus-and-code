@@ -103,8 +103,10 @@ const paymentOptions: PaymentOption[] = [
     id: "sbp",
     title: "СБП - оплата по QR",
     description: "Оплата через систему быстрых платежей",
-    commission: "Без комиссии",
+    commission: "Недоступно в тестовом магазине",
     icon: "phone",
+    disabled: true,
+    disabledReason: "Тестовый магазин ЮKassa не поддерживает оплату через СБП",
   },
   {
     id: "on-delivery",
@@ -189,6 +191,8 @@ export default function CheckoutPage() {
   const [appliedBonusAmount, setAppliedBonusAmount] = useState(0);
   const [bonusMessage, setBonusMessage] = useState("");
   const [isAgreementAccepted, setIsAgreementAccepted] = useState(true);
+  const [isPaymentCreating, setIsPaymentCreating] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
   const selectedDelivery = useMemo(
@@ -374,6 +378,51 @@ export default function CheckoutPage() {
     if (input.length > 9) formatted += "-" + input.substring(9, 11);
 
     setCheckoutPhone(formatted);
+  };
+
+  const handleCreateOrder = async () => {
+    setPaymentError("");
+
+    if (!checkoutEmail.trim() || !checkoutPhone.trim() || !city.trim()) {
+      setPaymentError("Заполните email, телефон и адрес доставки");
+      return;
+    }
+    if (selectedPaymentId !== "card") {
+      setPaymentError("В тестовом режиме доступна только оплата картой");
+      return;
+    }
+
+    setIsPaymentCreating(true);
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            selectedSize: item.selectedSize,
+            selectedColor: item.selectedColor,
+          })),
+          email: checkoutEmail,
+          phone: checkoutPhone,
+          address: city,
+          deliveryMethod: selectedDeliveryId,
+          paymentMethod: selectedPaymentId,
+          promoCode: appliedPromoCode || undefined,
+          comment,
+        }),
+      });
+      const data = await response.json() as { confirmationUrl?: string; error?: string };
+      if (!response.ok || !data.confirmationUrl) {
+        throw new Error(data.error || "Не удалось перейти к оплате");
+      }
+
+      window.location.assign(data.confirmationUrl);
+    } catch (error) {
+      setPaymentError(error instanceof Error ? error.message : "Не удалось создать заказ");
+      setIsPaymentCreating(false);
+    }
   };
 
   if (items.length === 0) {
@@ -700,11 +749,14 @@ export default function CheckoutPage() {
             <button
               className="pay-button"
               type="button"
-              disabled={!isAgreementAccepted || status !== "authenticated"}
+              onClick={handleCreateOrder}
+              disabled={!isAgreementAccepted || status !== "authenticated" || isPaymentCreating}
             >
               <FiLock aria-hidden="true" />
-              Перейти к оплате
+              {isPaymentCreating ? "Создаём платёж..." : "Перейти к оплате"}
             </button>
+
+            {paymentError && <p className="payment-error" role="alert">{paymentError}</p>}
 
             <p className="payment-note">
               Нажимая на кнопку, вы переходите к безопасной оплате и

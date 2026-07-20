@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { isOrderCancellable } from "@/lib/orders/orderCancellation";
 import "./page.scss";
 
 type OrderStatus = "processing" | "in_transit" | "delivered" | "cancelled";
@@ -15,6 +17,7 @@ interface OrderProduct {
   variant: string;
   quantity: number;
   imageUrl: string;
+  href: string | null;
 }
 
 interface OrderPreview {
@@ -22,13 +25,33 @@ interface OrderPreview {
   orderNumber: string;
   date: string;
   status: OrderStatus;
+  rawStatus: string;
+  canCancel: boolean;
   totalPrice: number;
   deliveryAddress: string;
   deliveryDate: string;
   products: OrderProduct[];
 }
 
-const orders: OrderPreview[] = [];
+type ApiOrder = {
+  id: string;
+  number: string;
+  status: string;
+  total: number;
+  deliveryAddress: string;
+  createdAt: string;
+  items: {
+    id: string;
+    productName: string;
+    imageUrl: string;
+    quantity: number;
+    selectedSize?: string | null;
+    selectedColor?: string | null;
+    product?: { slug: string } | null;
+  }[];
+};
+
+type OrderFilter = "all" | "active" | "delivered" | "cancelled";
 
 const statusMeta: Record<
   OrderStatus,
@@ -40,27 +63,23 @@ const statusMeta: Record<
   cancelled: { label: "Отменен", className: "status-cancelled", step: 0 },
 };
 
-const orderTabs = [
-  { label: "Все", value: orders.length },
-  {
-    label: "Активные",
-    value: orders.filter((order) => order.status !== "delivered").length,
-  },
-  {
-    label: "Доставленные",
-    value: orders.filter((order) => order.status === "delivered").length,
-  },
-  {
-    label: "Отмененные",
-    value: orders.filter((order) => order.status === "cancelled").length,
-  },
-];
-
 const formatPrice = (price: number) => `${price.toLocaleString("ru-RU")} ₽`;
+
+function mapOrderStatus(status: string): OrderStatus {
+  if (status === "SHIPPED") return "in_transit";
+  if (status === "DELIVERED") return "delivered";
+  if (["CANCELED", "PAYMENT_FAILED", "REFUNDED"].includes(status)) return "cancelled";
+  return "processing";
+}
 
 export default function ProfileOrdersPage() {
   const { status } = useSession();
   const router = useRouter();
+  const [orders, setOrders] = useState<OrderPreview[]>([]);
+  const [selectedFilter, setSelectedFilter] = useState<OrderFilter>("all");
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+  const [orderToCancel, setOrderToCancel] = useState<OrderPreview | null>(null);
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -68,10 +87,75 @@ export default function ProfileOrdersPage() {
     }
   }, [status, router]);
 
-  const totalSpent = orders.reduce((sum, order) => sum + order.totalPrice, 0);
-  const activeOrders = orders.filter((order) => order.status !== "delivered");
+  const fetchOrders = useCallback(() => {
+    return fetch("/api/user/orders", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data: { orders?: ApiOrder[] }) => {
+        setOrders((data.orders || []).map((order) => ({
+          id: order.id,
+          orderNumber: order.number,
+          date: new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" }).format(new Date(order.createdAt)),
+          status: mapOrderStatus(order.status),
+          rawStatus: order.status,
+          canCancel: isOrderCancellable(order.status),
+          totalPrice: order.total,
+          deliveryAddress: order.deliveryAddress,
+          deliveryDate: order.status === "DELIVERED" ? "Доставлен" : "Ожидает обработки",
+          products: order.items.map((item) => ({
+            id: item.id,
+            name: item.productName,
+            variant: [item.selectedColor, item.selectedSize].filter(Boolean).join(", ") || "Без варианта",
+            quantity: item.quantity,
+            imageUrl: item.imageUrl,
+            href: item.product ? `/product/${item.product.slug}` : null,
+          })),
+        })));
+      })
+      .catch(() => setOrders([]));
+  }, []);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    void fetchOrders();
+  }, [status, fetchOrders]);
+
+  const orderTabs: { label: string; filter: OrderFilter; value: number }[] = [
+    { label: "Все", filter: "all", value: orders.length },
+    { label: "Активные", filter: "active", value: orders.filter((order) => !["delivered", "cancelled"].includes(order.status)).length },
+    { label: "Доставленные", filter: "delivered", value: orders.filter((order) => order.status === "delivered").length },
+    { label: "Отмененные", filter: "cancelled", value: orders.filter((order) => order.status === "cancelled").length },
+  ];
+
+  const totalSpent = orders
+    .filter((order) => order.status !== "cancelled")
+    .reduce((sum, order) => sum + order.totalPrice, 0);
+  const activeOrders = orders.filter((order) => !["delivered", "cancelled"].includes(order.status));
+  const filteredOrders = orders.filter((order) => {
+    if (selectedFilter === "active") return !["delivered", "cancelled"].includes(order.status);
+    if (selectedFilter === "delivered") return order.status === "delivered";
+    if (selectedFilter === "cancelled") return order.status === "cancelled";
+    return true;
+  });
+
+  const handleCancelOrder = async () => {
+    if (!orderToCancel) return;
+    setActionError("");
+    setCancellingOrderId(orderToCancel.id);
+    try {
+      const response = await fetch(`/api/user/orders/${orderToCancel.id}/cancel`, { method: "POST" });
+      const data = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(data.error || "Не удалось отменить заказ");
+      await fetchOrders();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Не удалось отменить заказ");
+    } finally {
+      setCancellingOrderId(null);
+      setOrderToCancel(null);
+    }
+  };
 
   return (
+    <>
     <div className="profile-orders-page">
       <section className="orders-heading-card">
         <div>
@@ -105,11 +189,14 @@ export default function ProfileOrdersPage() {
       <section className="orders-panel">
         <div className="orders-toolbar">
           <div className="orders-tabs" role="tablist" aria-label="Фильтр заказов">
-            {orderTabs.map((tab, index) => (
+            {orderTabs.map((tab) => (
               <button
                 key={tab.label}
                 type="button"
-                className={`orders-tab ${index === 0 ? "active" : ""}`}
+                role="tab"
+                className={`orders-tab ${selectedFilter === tab.filter ? "active" : ""}`}
+                aria-selected={selectedFilter === tab.filter}
+                onClick={() => setSelectedFilter(tab.filter)}
               >
                 {tab.label}
                 <span>{tab.value}</span>
@@ -124,9 +211,11 @@ export default function ProfileOrdersPage() {
           </button>
         </div>
 
+        {actionError && <p className="orders-action-error" role="alert">{actionError}</p>}
+
         <div className="orders-list">
-          {orders.length > 0 ? (
-            orders.map((order) => {
+          {filteredOrders.length > 0 ? (
+            filteredOrders.map((order) => {
             const meta = statusMeta[order.status];
 
             return (
@@ -158,8 +247,8 @@ export default function ProfileOrdersPage() {
                 </div>
 
                 <div className="order-products">
-                  {order.products.map((product) => (
-                    <div className="order-product" key={product.id}>
+                  {order.products.map((product) => {
+                    const productContent = <>
                       <div className="product-image">
                         <Image
                           src={product.imageUrl}
@@ -174,8 +263,16 @@ export default function ProfileOrdersPage() {
                           {product.variant} · {product.quantity} шт.
                         </span>
                       </div>
-                    </div>
-                  ))}
+                    </>;
+
+                    return product.href ? (
+                      <Link className="order-product product-link" href={product.href} key={product.id}>
+                        {productContent}
+                      </Link>
+                    ) : (
+                      <div className="order-product" key={product.id}>{productContent}</div>
+                    );
+                  })}
                 </div>
 
                 <div className="order-card-footer">
@@ -186,6 +283,16 @@ export default function ProfileOrdersPage() {
                   <div className="order-actions">
                     <strong>{formatPrice(order.totalPrice)}</strong>
                     <Link href={`/profile/orders/${order.id}`}>Подробнее</Link>
+                    {order.canCancel && (
+                      <button
+                        type="button"
+                        className="cancel-order-button"
+                        disabled={cancellingOrderId === order.id}
+                        onClick={() => setOrderToCancel(order)}
+                      >
+                        {cancellingOrderId === order.id ? "Отмена…" : "Отменить"}
+                      </button>
+                    )}
                     <button type="button">Повторить</button>
                   </div>
                 </div>
@@ -209,10 +316,11 @@ export default function ProfileOrdersPage() {
                 </svg>
               </div>
               <div>
-                <h3>У вас пока нет заказов</h3>
+                <h3>{orders.length === 0 ? "У вас пока нет заказов" : "В этой категории заказов нет"}</h3>
                 <p>
-                  После оформления покупки здесь появятся статус доставки,
-                  состав заказа и история оплат.
+                  {orders.length === 0
+                    ? "После оформления покупки здесь появятся статус доставки, состав заказа и история оплат."
+                    : "Выберите другую категорию, чтобы посмотреть остальные заказы."}
                 </p>
               </div>
               <Link href="/catalog">Перейти в каталог</Link>
@@ -221,5 +329,15 @@ export default function ProfileOrdersPage() {
         </div>
       </section>
     </div>
+    <ConfirmDialog
+      isOpen={Boolean(orderToCancel)}
+      title="Отменить заказ?"
+      description={`Заказ №${orderToCancel?.orderNumber || ""} будет отменён. Если он уже оплачен, мы оформим полный возврат через ЮKassa.`}
+      confirmLabel="Да, отменить"
+      isLoading={Boolean(cancellingOrderId)}
+      onClose={() => setOrderToCancel(null)}
+      onConfirm={() => void handleCancelOrder()}
+    />
+    </>
   );
 }

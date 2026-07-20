@@ -12,8 +12,21 @@ import { useCart } from "@/context/CartContext";
 import { useFavorites } from "@/context/FavoritesContext";
 import "./page.scss";
 
-// Mock data
-const recentOrders: OrderRowProps[] = [];
+type ApiProfileOrder = {
+  id: string;
+  number: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  items: { quantity: number; imageUrl: string }[];
+};
+
+function mapProfileOrderStatus(status: string): OrderRowProps["status"] {
+  if (status === "SHIPPED") return "in_transit";
+  if (status === "DELIVERED") return "delivered";
+  if (["CANCELED", "PAYMENT_FAILED", "REFUNDED"].includes(status)) return "cancelled";
+  return "processing";
+}
 
 export default function ProfilePage() {
   const { status, update } = useSession();
@@ -21,6 +34,7 @@ export default function ProfilePage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [profileOrders, setProfileOrders] = useState<OrderRowProps[]>([]);
 
   const [profileData, setProfileData] = useState<any>(null);
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
@@ -72,6 +86,25 @@ export default function ProfilePage() {
       router.push("/login");
     }
   }, [status, router]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+
+    fetch("/api/user/orders", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data: { orders?: ApiProfileOrder[] }) => {
+        setProfileOrders((data.orders || []).map((order) => ({
+          id: order.id,
+          orderNumber: order.number,
+          date: new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" }).format(new Date(order.createdAt)),
+          status: mapProfileOrderStatus(order.status),
+          itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
+          totalPrice: order.total,
+          imageUrl: order.items[0]?.imageUrl || "/icon.svg",
+        })));
+      })
+      .catch(() => setProfileOrders([]));
+  }, [status]);
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let input = e.target.value.replace(/\D/g, "");
@@ -548,14 +581,14 @@ export default function ProfilePage() {
       {/* Recent Orders */}
       <div className="recent-orders-section">
         <div className="section-header">
-          <h3>Последние заказы</h3>
+          <h3>Все заказы</h3>
           <Link href="/profile/orders" className="view-all-link">
             Смотреть все заказы &rarr;
           </Link>
         </div>
         <div className="orders-list">
-          {recentOrders.length > 0 ? (
-            recentOrders.map((order) => (
+          {profileOrders.length > 0 ? (
+            profileOrders.map((order) => (
               <OrderRowCard key={order.id} {...order} />
             ))
           ) : (
