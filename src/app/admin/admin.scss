@@ -524,6 +524,97 @@
   }
 }
 
+.product-image-preview-item {
+  position: relative;
+  width: 112px;
+  flex: 0 0 112px;
+  cursor: grab;
+  transition: opacity 0.15s, transform 0.15s, filter 0.15s;
+
+  &:active { cursor: grabbing; }
+
+  &.is-dragging {
+    opacity: 0.35;
+    transform: scale(0.94);
+    filter: saturate(0.55);
+  }
+
+  &.drop-before,
+  &.drop-after {
+    filter: brightness(1.08);
+
+    img {
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 65%, transparent);
+    }
+  }
+
+  &.drop-before::before,
+  &.drop-after::after {
+    position: absolute;
+    z-index: 5;
+    top: 4px;
+    bottom: 4px;
+    width: 4px;
+    border-radius: 999px;
+    background: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent), 0 0 16px var(--primary);
+    content: "";
+  }
+
+  &.drop-before::before { left: -7px; }
+  &.drop-after::after { right: -7px; }
+
+  .dark-theme & {
+    &.drop-before,
+    &.drop-after {
+      filter: brightness(1.18);
+
+      img {
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
+      }
+    }
+
+    &.drop-before::before,
+    &.drop-after::after {
+      width: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.28), 0 0 22px rgba(255, 255, 255, 0.95);
+    }
+  }
+
+  img {
+    width: 112px;
+    height: 112px;
+    display: block;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+
+  &.is-main img {
+    border-color: var(--primary);
+  }
+
+  &.is-main {
+    order: -1;
+  }
+}
+
+.product-image-main-badge {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  left: 7px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--primary-text);
+  background: var(--primary);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+
 .upload-errors {
   display: flex;
   gap: 12px;

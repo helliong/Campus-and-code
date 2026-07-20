@@ -10,6 +10,7 @@ import {
   PRODUCT_IMAGE_RULES_TEXT,
 } from "@/lib/images/imageUploadRules";
 import { variantKey } from "@/lib/products/productVariants";
+import { moveArrayItem } from "@/lib/products/productImages";
 
 type ImagesByColor = Record<string, string[]>;
 type UniversityOption = {
@@ -43,9 +44,19 @@ export default function EditProductPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [colorFiles, setColorFiles] = useState<Record<string, File[]>>({});
   const [colorPreviewUrls, setColorPreviewUrls] = useState<Record<string, string[]>>({});
+  const [newImageIsMain, setNewImageIsMain] = useState(false);
+  const [newColorImageIsFirst, setNewColorImageIsFirst] = useState<Record<string, boolean>>({});
   const [stockByVariant, setStockByVariant] = useState<Record<string, string>>({});
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const draggedImageRef = useRef<{
+    scope: "general" | "color";
+    kind: "existing" | "new";
+    index: number;
+    colorId?: string;
+  } | null>(null);
+  const [draggedImageKey, setDraggedImageKey] = useState<string | null>(null);
+  const [dropIndicator, setDropIndicator] = useState<{ key: string; side: "before" | "after" } | null>(null);
   const [priceStr, setPriceStr] = useState("");
   const [oldPriceStr, setOldPriceStr] = useState("");
   
@@ -209,6 +220,7 @@ export default function EditProductPage() {
     const updatedFiles = files.filter((_, i) => i !== idx);
     setImageErrors([]);
     setFiles(updatedFiles);
+    if (newImageIsMain && updatedFiles.length === 0) setNewImageIsMain(false);
     
     previewUrls.forEach(url => URL.revokeObjectURL(url));
     setPreviewUrls(updatedFiles.map(f => URL.createObjectURL(f)));
@@ -220,6 +232,9 @@ export default function EditProductPage() {
     const updatedFiles = (colorFiles[colorId] || []).filter((_, i) => i !== idx);
     setImageErrors([]);
     setColorFiles((prev) => ({ ...prev, [colorId]: updatedFiles }));
+    if (newColorImageIsFirst[colorId] && updatedFiles.length === 0) {
+      setNewColorImageIsFirst((current) => ({ ...current, [colorId]: false }));
+    }
 
     colorPreviewUrls[colorId]?.forEach((url) => URL.revokeObjectURL(url));
     setColorPreviewUrls((prev) => ({
@@ -227,6 +242,139 @@ export default function EditProductPage() {
       [colorId]: updatedFiles.map((file) => URL.createObjectURL(file)),
     }));
   };
+
+  const moveExistingImage = (fromIndex: number, toIndex: number) => {
+    setExistingImages((current) => moveArrayItem(current, fromIndex, toIndex));
+  };
+
+  const moveNewImage = (fromIndex: number, toIndex: number) => {
+    setFiles((current) => moveArrayItem(current, fromIndex, toIndex));
+    setPreviewUrls((current) => moveArrayItem(current, fromIndex, toIndex));
+  };
+
+  const makeExistingImageMain = (imageIndex: number) => {
+    moveExistingImage(imageIndex, 0);
+    setNewImageIsMain(false);
+  };
+
+  const makeNewImageMain = (imageIndex: number) => {
+    moveNewImage(imageIndex, 0);
+    setNewImageIsMain(true);
+  };
+
+  const moveExistingColorImage = (colorId: string, fromIndex: number, toIndex: number) => {
+    setExistingImagesByColor((current) => ({
+      ...current,
+      [colorId]: moveArrayItem(current[colorId] || [], fromIndex, toIndex),
+    }));
+  };
+
+  const moveNewColorImage = (colorId: string, fromIndex: number, toIndex: number) => {
+    setColorFiles((current) => ({
+      ...current,
+      [colorId]: moveArrayItem(current[colorId] || [], fromIndex, toIndex),
+    }));
+    setColorPreviewUrls((current) => ({
+      ...current,
+      [colorId]: moveArrayItem(current[colorId] || [], fromIndex, toIndex),
+    }));
+  };
+
+  const makeExistingColorImageMain = (colorId: string, imageIndex: number) => {
+    moveExistingColorImage(colorId, imageIndex, 0);
+    setNewColorImageIsFirst((current) => ({ ...current, [colorId]: false }));
+    setSelectedColors((current) => [colorId, ...current.filter((color) => color !== colorId)]);
+  };
+
+  const makeNewColorImageMain = (colorId: string, imageIndex: number) => {
+    moveNewColorImage(colorId, imageIndex, 0);
+    setNewColorImageIsFirst((current) => ({ ...current, [colorId]: true }));
+    setSelectedColors((current) => [colorId, ...current.filter((color) => color !== colorId)]);
+  };
+
+  const dropGeneralImage = (targetKind: "existing" | "new", targetIndex: number) => {
+    const draggedImage = draggedImageRef.current;
+    draggedImageRef.current = null;
+    setDraggedImageKey(null);
+    setDropIndicator(null);
+    if (!draggedImage || draggedImage.scope !== "general") return;
+
+    if (draggedImage.kind === targetKind) {
+      if (targetKind === "existing") moveExistingImage(draggedImage.index, targetIndex);
+      else moveNewImage(draggedImage.index, targetIndex);
+      return;
+    }
+    if (targetIndex !== 0) return;
+    if (draggedImage.kind === "existing") makeExistingImageMain(draggedImage.index);
+    else makeNewImageMain(draggedImage.index);
+  };
+
+  const dropColorImage = (
+    colorId: string,
+    targetKind: "existing" | "new",
+    targetIndex: number,
+  ) => {
+    const draggedImage = draggedImageRef.current;
+    draggedImageRef.current = null;
+    setDraggedImageKey(null);
+    setDropIndicator(null);
+    if (
+      !draggedImage
+      || draggedImage.scope !== "color"
+      || draggedImage.colorId !== colorId
+    ) return;
+
+    if (draggedImage.kind === targetKind) {
+      if (targetKind === "existing") moveExistingColorImage(colorId, draggedImage.index, targetIndex);
+      else moveNewColorImage(colorId, draggedImage.index, targetIndex);
+      if (targetIndex === 0) {
+        setSelectedColors((current) => [colorId, ...current.filter((color) => color !== colorId)]);
+      }
+      return;
+    }
+    if (targetIndex !== 0) return;
+    if (draggedImage.kind === "existing") makeExistingColorImageMain(colorId, draggedImage.index);
+    else makeNewColorImageMain(colorId, draggedImage.index);
+  };
+
+  const startImageDrag = (
+    event: React.DragEvent,
+    image: NonNullable<typeof draggedImageRef.current>,
+    key: string,
+  ) => {
+    draggedImageRef.current = image;
+    setDraggedImageKey(key);
+    event.dataTransfer.effectAllowed = "move";
+  };
+
+  const markDropPosition = (
+    event: React.DragEvent,
+    target: { scope: "general" | "color"; kind: "existing" | "new"; index: number; colorId?: string },
+    key: string,
+  ) => {
+    event.preventDefault();
+    const draggedImage = draggedImageRef.current;
+    if (
+      !draggedImage
+      || draggedImage.scope !== target.scope
+      || draggedImage.colorId !== target.colorId
+    ) return;
+    setDropIndicator({
+      key,
+      side: draggedImage.kind === target.kind && draggedImage.index < target.index ? "after" : "before",
+    });
+  };
+
+  const clearDragPreview = () => {
+    draggedImageRef.current = null;
+    setDraggedImageKey(null);
+    setDropIndicator(null);
+  };
+
+  const getDragClassName = (key: string) => [
+    draggedImageKey === key ? "is-dragging" : "",
+    dropIndicator?.key === key ? `drop-${dropIndicator.side}` : "",
+  ].filter(Boolean).join(" ");
 
   const uploadFile = async (file: File) => {
     const uploadData = new FormData();
@@ -310,18 +458,19 @@ export default function EditProductPage() {
 
     try {
       const uploadedUrls: string[] = [];
-      let finalImagesByColor: ImagesByColor = {};
+      const finalImagesByColor: ImagesByColor = {};
       let finalImages: string[] = [];
 
       if (usesColorImages) {
-        finalImagesByColor = Object.fromEntries(
-          selectedColors.map((color) => [color, [...(existingImagesByColor[color] || [])]]),
-        );
-
         for (const color of selectedColors) {
+          const newColorUrls: string[] = [];
           for (const file of colorFiles[color] || []) {
-            finalImagesByColor[color].push(await uploadFile(file));
+            newColorUrls.push(await uploadFile(file));
           }
+          const existingColorUrls = existingImagesByColor[color] || [];
+          finalImagesByColor[color] = newColorImageIsFirst[color] && newColorUrls.length > 0
+            ? [newColorUrls[0], ...existingColorUrls, ...newColorUrls.slice(1)]
+            : [...existingColorUrls, ...newColorUrls];
         }
 
         finalImages = selectedColors.flatMap((color) => finalImagesByColor[color] || []);
@@ -330,7 +479,9 @@ export default function EditProductPage() {
           uploadedUrls.push(await uploadFile(file));
         }
 
-        finalImages = [...existingImages, ...uploadedUrls];
+        finalImages = newImageIsMain && uploadedUrls.length > 0
+          ? [uploadedUrls[0], ...existingImages, ...uploadedUrls.slice(1)]
+          : [...existingImages, ...uploadedUrls];
       }
       
       const imageUrl = finalImages[0] || "";
@@ -617,8 +768,23 @@ export default function EditProductPage() {
                       {existingColorImages.length > 0 || newColorPreviews.length > 0 ? (
                         <div className="preview-gallery" style={{ display: "flex", gap: "10px", flexWrap: "wrap", padding: "10px" }}>
                           {existingColorImages.map((url, idx) => (
-                            <div key={url} style={{ position: "relative", width: "80px", height: "80px" }}>
-                              <img src={url} alt={`${getColorLabel(color)} ${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px" }} />
+                            <div
+                              key={url}
+                              className={`product-image-preview-item ${selectedColors[0] === color && !newColorImageIsFirst[color] && idx === 0 ? "is-main" : ""} ${getDragClassName(`color-existing-${color}-${url}`)}`}
+                              draggable
+                              onDragStart={(event) => {
+                                startImageDrag(event, { scope: "color", kind: "existing", colorId: color, index: idx }, `color-existing-${color}-${url}`);
+                              }}
+                              onDragOver={(event) => markDropPosition(event, { scope: "color", kind: "existing", colorId: color, index: idx }, `color-existing-${color}-${url}`)}
+                              onDragEnd={clearDragPreview}
+                              onDrop={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                dropColorImage(color, "existing", idx);
+                              }}
+                            >
+                              <img src={url} alt={`${getColorLabel(color)} ${idx + 1}`} />
+                              {selectedColors[0] === color && !newColorImageIsFirst[color] && idx === 0 && <span className="product-image-main-badge">Главная</span>}
                               <button
                                 type="button"
                                 onClick={(event) => removeExistingColorImage(color, idx, event)}
@@ -629,8 +795,23 @@ export default function EditProductPage() {
                             </div>
                           ))}
                           {newColorPreviews.map((url, idx) => (
-                            <div key={url} style={{ position: "relative", width: "80px", height: "80px" }}>
-                              <img src={url} alt={`${getColorLabel(color)} новое ${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px", border: "2px solid var(--primary)" }} />
+                            <div
+                              key={url}
+                              className={`product-image-preview-item ${selectedColors[0] === color && newColorImageIsFirst[color] && idx === 0 ? "is-main" : ""} ${getDragClassName(`color-new-${color}-${url}`)}`}
+                              draggable
+                              onDragStart={(event) => {
+                                startImageDrag(event, { scope: "color", kind: "new", colorId: color, index: idx }, `color-new-${color}-${url}`);
+                              }}
+                              onDragOver={(event) => markDropPosition(event, { scope: "color", kind: "new", colorId: color, index: idx }, `color-new-${color}-${url}`)}
+                              onDragEnd={clearDragPreview}
+                              onDrop={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                dropColorImage(color, "new", idx);
+                              }}
+                            >
+                              <img src={url} alt={`${getColorLabel(color)} новое ${idx + 1}`} />
+                              {selectedColors[0] === color && newColorImageIsFirst[color] && idx === 0 && <span className="product-image-main-badge">Главная</span>}
                               <button
                                 type="button"
                                 onClick={(event) => removeColorFile(color, idx, event)}
@@ -662,7 +843,7 @@ export default function EditProductPage() {
           <label>
             Изображения (до 8 штук)
             <span style={{ display: 'block', fontSize: '0.85em', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
-              {PRODUCT_IMAGE_RULES_TEXT} Первое фото станет обложкой.
+              {PRODUCT_IMAGE_RULES_TEXT} Перетаскивайте фото для изменения порядка. Первое фото станет обложкой.
             </span>
           </label>
           <div 
@@ -692,8 +873,23 @@ export default function EditProductPage() {
             {existingImages.length > 0 || previewUrls.length > 0 ? (
               <div className="preview-gallery" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', padding: '10px' }}>
                 {existingImages.map((url, idx) => (
-                  <div key={`exist-${idx}`} style={{ position: 'relative', width: '80px', height: '80px' }}>
-                    <img src={url} alt={`Existing ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                  <div
+                    key={url}
+                    className={`product-image-preview-item ${!newImageIsMain && idx === 0 ? "is-main" : ""} ${getDragClassName(`general-existing-${url}`)}`}
+                    draggable
+                    onDragStart={(event) => {
+                      startImageDrag(event, { scope: "general", kind: "existing", index: idx }, `general-existing-${url}`);
+                    }}
+                    onDragOver={(event) => markDropPosition(event, { scope: "general", kind: "existing", index: idx }, `general-existing-${url}`)}
+                    onDragEnd={clearDragPreview}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      dropGeneralImage("existing", idx);
+                    }}
+                  >
+                    <img src={url} alt={`Existing ${idx + 1}`} />
+                    {!newImageIsMain && idx === 0 && <span className="product-image-main-badge">Главная</span>}
                     <button 
                       type="button" 
                       onClick={(e) => removeExistingImage(idx, e)}
@@ -702,8 +898,23 @@ export default function EditProductPage() {
                   </div>
                 ))}
                 {previewUrls.map((url, idx) => (
-                  <div key={`new-${idx}`} style={{ position: 'relative', width: '80px', height: '80px' }}>
-                    <img src={url} alt={`Preview ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', border: '2px solid var(--accent-color)' }} />
+                  <div
+                    key={url}
+                    className={`product-image-preview-item ${newImageIsMain && idx === 0 ? "is-main" : ""} ${getDragClassName(`general-new-${url}`)}`}
+                    draggable
+                    onDragStart={(event) => {
+                      startImageDrag(event, { scope: "general", kind: "new", index: idx }, `general-new-${url}`);
+                    }}
+                    onDragOver={(event) => markDropPosition(event, { scope: "general", kind: "new", index: idx }, `general-new-${url}`)}
+                    onDragEnd={clearDragPreview}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      dropGeneralImage("new", idx);
+                    }}
+                  >
+                    <img src={url} alt={`Preview ${idx + 1}`} />
+                    {newImageIsMain && idx === 0 && <span className="product-image-main-badge">Главная</span>}
                     <button 
                       type="button" 
                       onClick={(e) => removeFile(idx, e)}

@@ -10,6 +10,11 @@
   .order-status-actions { display: flex; align-items: center; gap: .75rem; }
   .order-status-actions > span { padding: 0.45rem 0.7rem; border-radius: 7px; color: #4ade80; background: rgba(34,197,94,.12); }
   .cancel-order-action { display: flex; flex-direction: column; align-items: flex-end; gap: .35rem; }
+  .pay-order-action { display: flex; flex-direction: column; align-items: flex-end; gap: .35rem; }
+  .pay-order-action button { padding: .55rem .8rem; border: 1px solid var(--primary); border-radius: 7px; color: var(--primary-text); background: var(--primary); cursor: pointer; }
+  .pay-order-action button:hover:not(:disabled) { border-color: var(--primary-hover); background: var(--primary-hover); }
+  .pay-order-action button:disabled { cursor: wait; opacity: .6; }
+  .pay-order-action small { max-width: 280px; color: #fca5a5; text-align: right; }
   .cancel-order-action button { padding: .55rem .8rem; border: 1px solid rgba(239,68,68,.55); border-radius: 7px; color: #ef4444; background: transparent; cursor: pointer; }
   .cancel-order-action button:hover:not(:disabled) { color: #fff; border-color: #dc2626; background: #dc2626; }
   .cancel-order-action button:disabled { cursor: wait; opacity: .6; }

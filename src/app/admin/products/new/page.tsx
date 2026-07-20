@@ -10,6 +10,7 @@ import {
   PRODUCT_IMAGE_RULES_TEXT,
 } from "@/lib/images/imageUploadRules";
 import { variantKey } from "@/lib/products/productVariants";
+import { moveArrayItem } from "@/lib/products/productImages";
 
 type ImagesByColor = Record<string, string[]>;
 type UniversityOption = {
@@ -31,6 +32,9 @@ export default function NewProductPage() {
   const [stockByVariant, setStockByVariant] = useState<Record<string, string>>({});
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const draggedImageRef = useRef<{ colorId?: string; index: number } | null>(null);
+  const [draggedImageKey, setDraggedImageKey] = useState<string | null>(null);
+  const [dropIndicator, setDropIndicator] = useState<{ key: string; side: "before" | "after" } | null>(null);
   const [priceStr, setPriceStr] = useState("");
   const [oldPriceStr, setOldPriceStr] = useState("");
   
@@ -155,6 +159,68 @@ export default function NewProductPage() {
       [colorId]: updatedFiles.map((file) => URL.createObjectURL(file)),
     }));
   };
+
+  const moveFile = (fromIndex: number, toIndex: number) => {
+    setFiles((current) => moveArrayItem(current, fromIndex, toIndex));
+    setPreviewUrls((current) => moveArrayItem(current, fromIndex, toIndex));
+  };
+
+  const moveColorFile = (colorId: string, fromIndex: number, toIndex: number) => {
+    setColorFiles((current) => ({
+      ...current,
+      [colorId]: moveArrayItem(current[colorId] || [], fromIndex, toIndex),
+    }));
+    setColorPreviewUrls((current) => ({
+      ...current,
+      [colorId]: moveArrayItem(current[colorId] || [], fromIndex, toIndex),
+    }));
+  };
+
+  const dropImage = (targetIndex: number, colorId?: string) => {
+    const draggedImage = draggedImageRef.current;
+    draggedImageRef.current = null;
+    setDraggedImageKey(null);
+    setDropIndicator(null);
+    if (!draggedImage || draggedImage.colorId !== colorId) return;
+    if (colorId) {
+      moveColorFile(colorId, draggedImage.index, targetIndex);
+      if (targetIndex === 0) {
+        setSelectedColors((current) => [colorId, ...current.filter((color) => color !== colorId)]);
+      }
+    } else {
+      moveFile(draggedImage.index, targetIndex);
+    }
+  };
+
+  const startImageDrag = (
+    event: React.DragEvent,
+    image: { colorId?: string; index: number },
+    key: string,
+  ) => {
+    draggedImageRef.current = image;
+    setDraggedImageKey(key);
+    event.dataTransfer.effectAllowed = "move";
+  };
+
+  const markDropPosition = (
+    event: React.DragEvent,
+    targetIndex: number,
+    key: string,
+    colorId?: string,
+  ) => {
+    event.preventDefault();
+    const draggedImage = draggedImageRef.current;
+    if (!draggedImage || draggedImage.colorId !== colorId) return;
+    setDropIndicator({
+      key,
+      side: draggedImage.index < targetIndex ? "after" : "before",
+    });
+  };
+
+  const getDragClassName = (key: string) => [
+    draggedImageKey === key ? "is-dragging" : "",
+    dropIndicator?.key === key ? `drop-${dropIndicator.side}` : "",
+  ].filter(Boolean).join(" ");
 
   const uploadFile = async (file: File) => {
     const uploadData = new FormData();
@@ -523,8 +589,26 @@ export default function NewProductPage() {
                     {(colorPreviewUrls[color] || []).length > 0 ? (
                       <div className="preview-gallery" style={{ display: "flex", gap: "10px", flexWrap: "wrap", padding: "10px" }}>
                         {(colorPreviewUrls[color] || []).map((url, idx) => (
-                          <div key={url} style={{ position: "relative", width: "80px", height: "80px" }}>
-                            <img src={url} alt={`${getColorLabel(color)} ${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px" }} />
+                          <div
+                            key={url}
+                            className={`product-image-preview-item ${selectedColors[0] === color && idx === 0 ? "is-main" : ""} ${getDragClassName(`color-${color}-${url}`)}`}
+                            draggable
+                            onDragStart={(event) => {
+                              startImageDrag(event, { colorId: color, index: idx }, `color-${color}-${url}`);
+                            }}
+                            onDragOver={(event) => markDropPosition(event, idx, `color-${color}-${url}`, color)}
+                            onDragEnd={() => {
+                              setDraggedImageKey(null);
+                              setDropIndicator(null);
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              dropImage(idx, color);
+                            }}
+                          >
+                            <img src={url} alt={`${getColorLabel(color)} ${idx + 1}`} />
+                            {selectedColors[0] === color && idx === 0 && <span className="product-image-main-badge">Главная</span>}
                             <button
                               type="button"
                               onClick={(event) => removeColorFile(color, idx, event)}
@@ -555,7 +639,7 @@ export default function NewProductPage() {
           <label>
             Изображения (до 8 штук)
             <span style={{ display: 'block', fontSize: '0.85em', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
-              {PRODUCT_IMAGE_RULES_TEXT} Первое фото станет обложкой.
+              {PRODUCT_IMAGE_RULES_TEXT} Перетаскивайте фото для изменения порядка. Первое фото станет обложкой.
             </span>
           </label>
           <div 
@@ -587,8 +671,26 @@ export default function NewProductPage() {
             {previewUrls.length > 0 ? (
               <div className="preview-gallery" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', padding: '10px' }}>
                 {previewUrls.map((url, idx) => (
-                  <div key={idx} style={{ position: 'relative', width: '80px', height: '80px' }}>
-                    <img src={url} alt={`Preview ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                  <div
+                    key={url}
+                    className={`product-image-preview-item ${idx === 0 ? "is-main" : ""} ${getDragClassName(`general-${url}`)}`}
+                    draggable
+                    onDragStart={(event) => {
+                      startImageDrag(event, { index: idx }, `general-${url}`);
+                    }}
+                    onDragOver={(event) => markDropPosition(event, idx, `general-${url}`)}
+                    onDragEnd={() => {
+                      setDraggedImageKey(null);
+                      setDropIndicator(null);
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      dropImage(idx);
+                    }}
+                  >
+                    <img src={url} alt={`Preview ${idx + 1}`} />
+                    {idx === 0 && <span className="product-image-main-badge">Главная</span>}
                     <button 
                       type="button" 
                       onClick={(e) => removeFile(idx, e)}

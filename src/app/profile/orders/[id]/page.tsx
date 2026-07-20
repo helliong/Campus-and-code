@@ -4,8 +4,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/database/prisma";
-import { isOrderCancellable } from "@/lib/orders/orderCancellation";
+import { isOrderCancellable, isOrderPayable } from "@/lib/orders/orderCancellation";
 import CancelOrderButton from "./CancelOrderButton";
+import PayOrderButton from "./PayOrderButton";
 import "./page.scss";
 
 const statusLabels: Record<string, string> = {
@@ -31,6 +32,7 @@ export default async function ProfileOrderPage({ params }: { params: Promise<{ i
         <div><small>Заказ</small><h1>№{order.number}</h1></div>
         <div className="order-status-actions">
           <span>{statusLabels[order.status]}</span>
+          {isOrderPayable(order.status) && <PayOrderButton orderId={order.id} />}
           {isOrderCancellable(order.status) && <CancelOrderButton orderId={order.id} orderNumber={order.number} />}
         </div>
       </header>

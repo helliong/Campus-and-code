@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import { isOrderCancellable } from "@/lib/orders/orderCancellation";
+import { isOrderCancellable, isOrderPayable } from "@/lib/orders/orderCancellation";
 import "./page.scss";
 
 type OrderStatus = "processing" | "in_transit" | "delivered" | "cancelled";
@@ -27,6 +27,7 @@ interface OrderPreview {
   status: OrderStatus;
   rawStatus: string;
   canCancel: boolean;
+  canPay: boolean;
   totalPrice: number;
   deliveryAddress: string;
   deliveryDate: string;
@@ -68,7 +69,7 @@ const formatPrice = (price: number) => `${price.toLocaleString("ru-RU")} ₽`;
 function mapOrderStatus(status: string): OrderStatus {
   if (status === "SHIPPED") return "in_transit";
   if (status === "DELIVERED") return "delivered";
-  if (["CANCELED", "PAYMENT_FAILED", "REFUNDED"].includes(status)) return "cancelled";
+  if (["CANCELED", "REFUNDED"].includes(status)) return "cancelled";
   return "processing";
 }
 
@@ -78,6 +79,7 @@ export default function ProfileOrdersPage() {
   const [orders, setOrders] = useState<OrderPreview[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<OrderFilter>("all");
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+  const [payingOrderId, setPayingOrderId] = useState<string | null>(null);
   const [orderToCancel, setOrderToCancel] = useState<OrderPreview | null>(null);
   const [actionError, setActionError] = useState("");
 
@@ -98,9 +100,14 @@ export default function ProfileOrdersPage() {
           status: mapOrderStatus(order.status),
           rawStatus: order.status,
           canCancel: isOrderCancellable(order.status),
+          canPay: isOrderPayable(order.status),
           totalPrice: order.total,
           deliveryAddress: order.deliveryAddress,
-          deliveryDate: order.status === "DELIVERED" ? "Доставлен" : "Ожидает обработки",
+          deliveryDate: order.status === "DELIVERED"
+            ? "Доставлен"
+            : ["AWAITING_PAYMENT", "PAYMENT_FAILED"].includes(order.status)
+              ? "Ожидает оплаты"
+              : "Ожидает обработки",
           products: order.items.map((item) => ({
             id: item.id,
             name: item.productName,
@@ -127,7 +134,7 @@ export default function ProfileOrdersPage() {
   ];
 
   const totalSpent = orders
-    .filter((order) => order.status !== "cancelled")
+    .filter((order) => ["PAID", "PROCESSING", "SHIPPED", "DELIVERED"].includes(order.rawStatus))
     .reduce((sum, order) => sum + order.totalPrice, 0);
   const activeOrders = orders.filter((order) => !["delivered", "cancelled"].includes(order.status));
   const filteredOrders = orders.filter((order) => {
@@ -151,6 +158,22 @@ export default function ProfileOrdersPage() {
     } finally {
       setCancellingOrderId(null);
       setOrderToCancel(null);
+    }
+  };
+
+  const handlePayOrder = async (order: OrderPreview) => {
+    setActionError("");
+    setPayingOrderId(order.id);
+    try {
+      const response = await fetch(`/api/user/orders/${order.id}/pay`, { method: "POST" });
+      const data = await response.json() as { error?: string; confirmationUrl?: string };
+      if (!response.ok || !data.confirmationUrl) {
+        throw new Error(data.error || "Не удалось открыть страницу оплаты");
+      }
+      window.location.assign(data.confirmationUrl);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Не удалось открыть страницу оплаты");
+      setPayingOrderId(null);
     }
   };
 
@@ -216,7 +239,11 @@ export default function ProfileOrdersPage() {
         <div className="orders-list">
           {filteredOrders.length > 0 ? (
             filteredOrders.map((order) => {
-            const meta = statusMeta[order.status];
+            const meta = order.rawStatus === "AWAITING_PAYMENT"
+              ? { label: "Ожидает оплаты", className: "status-processing", step: 0 }
+              : order.rawStatus === "PAYMENT_FAILED"
+                ? { label: "Оплата не завершена", className: "status-processing", step: 0 }
+                : statusMeta[order.status];
 
             return (
               <article className="order-card" key={order.id}>
@@ -283,6 +310,16 @@ export default function ProfileOrdersPage() {
                   <div className="order-actions">
                     <strong>{formatPrice(order.totalPrice)}</strong>
                     <Link href={`/profile/orders/${order.id}`}>Подробнее</Link>
+                    {order.canPay && (
+                      <button
+                        type="button"
+                        className="pay-order-button"
+                        disabled={payingOrderId === order.id}
+                        onClick={() => void handlePayOrder(order)}
+                      >
+                        {payingOrderId === order.id ? "Открываем…" : "Оплатить"}
+                      </button>
+                    )}
                     {order.canCancel && (
                       <button
                         type="button"
