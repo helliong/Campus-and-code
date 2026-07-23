@@ -54,7 +54,7 @@ const categories = [
 
 export default async function Home() {
   const dbProducts = await getPublicProducts();
-  const displayProducts = dbProducts.slice(0, 10); // show top 10
+  const displayProducts = dbProducts.slice(0, 12); // show two rows of six products
 
   const dynamicCategories = categories.map((cat) => {
     let count = 0;
